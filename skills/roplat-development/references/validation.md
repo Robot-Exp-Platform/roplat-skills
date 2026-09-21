@@ -1,6 +1,6 @@
-# 验证、迁移与排错
+# 验证、版本核对与排错
 
-先确定用户roplat版本。当前技能例程已在干净的开发提交 `e1bab70` 上复验；版本文件用 `core_commit` 与 `verified_source_digest` 关联实际来源，历史审计指纹保存在 `historical_validation`。Replay 新能力属于另一个平行分支，见 `related_development`；不要把两个分支的能力合称为某个已经整合的版本。开发提交与技能集发布都不等于核心冻结。用当前 `docs/system-syntax.md`、`docs/execution-protocol.md`、`docs/lifecycle.md` 和 `docs/static-ownership-planning.md` 核对契约；旧RFC及skill不是当前依据。候选的 `stop_check` 实验已撤回；错误提示优于猜测宏会忽略参数。
+先确定用户 roplat 版本。当前技能例程已在干净的 `main` 提交 `c595393` 上复验；版本文件用 `core_commit` 与 `verified_source_digest` 关联实际来源，历史审计指纹保存在 `historical_validation`，此前验证来源保存在 `previous_verification`。消息边界与 Replay 新能力已整合，来源见 `integrated_changes`；核心完整工程验收见该提交的 `docs/candidate/integration-validation.md`。当前定位是未公开发行的内部工程候选，保留已知限制和性能未达标项。用当前 `docs/system-syntax.md`、`docs/execution-protocol.md`、`docs/lifecycle.md` 和 `docs/static-ownership-planning.md` 核对契约；旧RFC及skill不是当前依据。候选的 `stop_check` 实验已撤回；错误提示优于猜测宏会忽略参数。
 
 ## 可运行例程
 
@@ -27,6 +27,6 @@ python3 <skill目录>/scripts/verify_examples.py --roplat <核心仓库> --offli
 | 节点开始被当成普通Rust运算 | 图被Rust语句分隔或放在普通if/loop里；回到连续DSL |
 | 裸数值被当成Node | 用Source节点或当前Yield/match绑定表达输入 |
 
-修改后运行相关包测试和Clippy，按影响范围选择完整验证。核心/驱动大的契约变更先讨论目的、利弊、兼容性和保留项；技能本身不授权这样的重构。对性能保留版本、机器、时钟分辨率、负载、采样和失败项，不能从展开代码短或Future小直接宣称更快。长期10%回退目标仍存在，本轮允许披露未达标项。消息边界已增加静态契约、padding 初始化编码和 Python 布局/类型检查，但 bool 等受限字段的接收值验证仍按作者决定延期；不能据此宣称可安全接受任意外部字节。Replay 新能力已在独立分支实现；应核对是否已包含相应提交，再使用其 FeedSource 与类型化比较器。有限测试通过不代表所有路径安全、完整或核心版本已成立。
+修改后运行相关包测试和Clippy，按影响范围选择完整验证。核心/驱动大的契约变更先讨论目的、利弊、兼容性和保留项；技能本身不授权这样的重构。对性能保留版本、机器、时钟分辨率、负载、采样和失败项，不能从展开代码短或Future小直接宣称更快。长期10%回退目标仍存在，本轮允许披露未达标项。消息边界已增加静态契约、padding 初始化编码和 Python 布局/类型检查，但 bool 等受限字段的接收值验证仍按作者决定延期；不能据此宣称可安全接受任意外部字节。当前 main 已包含 ReplayFeedSource 与类型化比较器；使用其他版本时仍须核对其公开 API。技能例程复验只覆盖下述 Rust/System/旁路负载，不替代核心 Replay 和外语边界的专项验证。有限测试通过不代表所有路径安全、完整或达到稳定发行标准。
 
 例程独立锁文件本次选择 Tokio 1.52.1，而当前核心工作区锁文件为 1.48.0；它是独立用户工程的兼容验证，不是同锁文件的核心回归测量。核心依赖变化使 `--locked` 失败时，应审阅并重新验证锁文件后更新技能资产，不要在交付脚本中静默解除锁定。

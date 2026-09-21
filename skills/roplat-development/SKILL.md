@@ -19,7 +19,7 @@ description: 使用 roplat 的 Node、Rhythm 和 System 宏编写、修改或排
 - **涉及任何嵌套节律、跨周期状态或子节律输出：先读 [rhythm-domains.md](references/rhythm-domains.md)，再看 [完整三层宏例程](assets/control_layers/src/main.rs)。** 不要仅由“循环”二字推断各层关系。
 - 创建节点、控制停止、处理错误、自定义节律：读 [execution-lifecycle.md](references/execution-lifecycle.md)。
 - 交换外部状态、选通信类型、接入 C++/Python 节点：读 [communication-and-languages.md](references/communication-and-languages.md)。
-- 编译问题、库版本迁移、验收：读 [validation.md](references/validation.md)。
+- 编译问题、版本核对、验收：读 [validation.md](references/validation.md)。
 
 ## 编码前固定四件事
 

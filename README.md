@@ -6,7 +6,7 @@
 |---|---|---|
 | roplat-development | 用 Node / Rhythm / System 编写和修改 roplat 程序，重点教授静态组图、多层节律、生命周期与执行结果 | [SKILL.md](skills/roplat-development/SKILL.md) |
 
-当前例程已在核心开发提交 `e1bab70`（`codex/communication-boundary-cost`）上复验。该分支已实现消息静态契约与 Python 布局缓存/返回检查；受限字段的接收值验证仍延期。Replay 新能力在独立提交 `50e5593`，尚未与通信分支整合；使用前须核对实际版本。版本关联见 [version.json](skills/roplat-development/references/version.json)，本技能集的提交不代表核心已冻结或发布。
+当前例程已在核心 `main` 提交 `c595393` 上复验。该内部工程候选通过 [PR #58](https://github.com/Robot-Exp-Platform/roplat/pull/58) 整合消息静态契约、Python 布局缓存/返回检查及 Replay FeedSource/类型化比较；受限字段的接收值验证仍延期。版本关联见 [version.json](skills/roplat-development/references/version.json)，核心仍是未公开发行的内部版本，性能未达标项和已知限制继续保留。
 
 ## 使用与验证
 
@@ -28,4 +28,4 @@ python3 skills/roplat-development/scripts/verify_examples.py --roplat /path/to/r
 
 自带三层例程已通过实际运行和 Clippy。另一位未参与技能编写、但已有核心背景的评估者，未读资产实现与验收规则，独立完成了多层采样、错误隔离、兄弟异步域旁路交换三个程序；[产物与结果](evaluations/results/20260920/independent-use/EVALUATION.md)可审阅。这是独立使用验证，不是完全盲评或跨模型能力保证。
 
-复现独立产物：`python3 evaluations/verify.py --roplat /path/to/roplat --offline`。2026-09-21 在干净的 `e1bab70` 上重新运行自带例程与此前独立产物，运行断言和 Clippy `-D warnings` 均通过，见[本次复验记录](evaluations/results/20260921/publication-validation.json)。这次复验没有重新进行独立生成评估。原始日志与构建产物保存在临时目录，仓库只保留代码、锁文件、参数和结果摘要。
+复现独立产物：`python3 evaluations/verify.py --roplat /path/to/roplat --offline`。2026-09-21 在干净的 `main` 提交 `c595393` 上重新运行自带例程与此前独立产物，运行断言和 Clippy `-D warnings` 均通过，见[整合后复验记录](evaluations/results/20260921/main-integration-validation.json)。这次复验没有重新进行独立生成评估，也未额外验证 Replay、外语节点或机器人；这些核心能力的工程证据见 [核心整合验收](https://github.com/Robot-Exp-Platform/roplat/blob/c595393df441056a25b2af8bedfcbd0f598b3fec/docs/candidate/integration-validation.md)。此前在 `e1bab70` 上的[发布复验记录](evaluations/results/20260921/publication-validation.json)保留不变。原始日志与构建产物保存在临时目录，仓库只保留代码、锁文件、参数和结果摘要。

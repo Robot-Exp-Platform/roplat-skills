@@ -25,26 +25,28 @@ assert_eq!(subscriber.latest(), Some(&7));
 
 这些类型用于被组合的异步代码，不要求每个端点独占OS线程。IPC是另一条字节传输/发现/握手路径，不据进程内Latest测试推断IPC的性能和类型安全。
 
-## 本机消息边界（通信分支 e1bab70）
+## 本机消息边界
 
 typed IPC 的自定义消息要求 `Copy + NativeMessage`；`#[roplat_msg]` 自动生成契约，手写本机消息可用 `#[repr(C)]` 与 `#[derive(roplat::NativeMessage)]`。引用、指针、String、Vec 和拥有 Drop 资源的消息不能自动通过该静态契约。普通 Rust 图边及进程内泛型旁路不因此要求 NativeMessage。
 
 含 padding 的消息逐字段编码并将间隙置零；无 padding 的消息可以借用原生字节。`publish_owned(Vec<u8>)` 允许后端接管编码缓冲；第三方后端的默认回退仍可能复制。该格式使用本机布局与端序，不是跨架构 wire 格式。
 
-**NativeMessage 不等于 Pod / AnyBitPattern。** bool 等受限字段的接收值验证按作者决定延期，兼容入口仍信任字段字节有效；非法位模式可能导致 Rust 未定义行为。已有长度检查保留，不能把编译期布局能力理解为对任意外部字节的安全保证。迁移与限制以对应核心版本的 `docs/communication-boundary.md` 为准。
+**NativeMessage 不等于 Pod / AnyBitPattern。** bool 等受限字段的接收值验证按作者决定延期，兼容入口仍信任字段字节有效；非法位模式可能导致 Rust 未定义行为。已有长度检查保留，不能把编译期布局能力理解为对任意外部字节的安全保证。具体契约与限制以对应核心版本的 `docs/communication-boundary.md` 为准。
 
 ## C++ / Python
 
 应用仍是Rust项目：使用roplat宏和build.rs生成可修改的外语节点文件，C++/Python实现节点；Rhythm/System组织留在Rust。生成器所有的文件会重建，用户实现文件仅缺失时生成，避免修改会被覆盖的基类。现有多语言示例和roplat_build的生成工具是核对入口。
 
-在通信分支，Python 透明 Node 在 `on_init` 中验证并缓存 ctypes 布局，返回时只接受预期准确类型或显式 bytes，并检查长度；暂不检查 bool 等字段位模式。手写透明 `TypeBinding` 需要提供 native hooks。返回路径已删除中间 Rust Vec，仍不等于端到端零复制。
+当前 Python 透明 Node 在 `on_init` 中验证并缓存 ctypes 布局，返回时只接受预期准确类型或显式 bytes，并检查长度；暂不检查 bool 等字段位模式。手写透明 `TypeBinding` 需要提供 native hooks。返回路径已删除中间 Rust Vec，仍不等于端到端零复制。
 
 缓存跟随对象的一次启用。节点位于周期内部时，每周期都会支付初始化成本；不能为性能悄悄改变用户需要的生命周期。桥接失败仍走现有 panic 路径，不属于合作式 Execution 失败与资源归还保证。Python opaque Node 的历史 thread-local 单槽交接不支持任意多在途、同类型分支与线程迁移。这些边界不同于已独立验证的 Python 旁路 API。
 
-## Replay：先核对分支
+## Replay：录制 Feed 源与类型化比较
 
-例程复验采用的通信分支尚不包含 Replay 新能力。独立开发提交 `50e5593`（`codex/replay-capabilities`）提供 `ReplayFeedSource<D>` 与类型化 `FeedComparator<D>` / `FloatTolerance`。使用前检查目标仓库是否包含这些 API，并阅读该版本的 `docs/replay.md` 与真实 `replay_nested` System 例程。
+当前已验证的 `main` 提交 `c595393` 同时包含通信边界修订与 `ReplayFeedSource<D>`、类型化 `FeedComparator<D>` / `FloatTolerance`。使用其他核心版本时核对公开 API；具体用法读该版本的 `docs/replay.md` 与真实 `replay_nested` System 例程。
 
-在 Replay 分支，旧 `OutputOnly` 和 `FeedCheck::Tolerance` 配置在 drive 开始前明确报迁移错误；应分别迁移到 FeedSource 和 `.with_comparator(...)`。FeedSource 把录制的周期 Feed 作为新消费者域的 Yield，不运行原录制域，也不重建原 drive 的完整 Output。类型化比较会解码成真实 D 再比较，不能再把任意序列化字节当作 f64。
+需要重放录制的周期输出时使用 `ReplayFeedSource<D>`：它将录制的 Feed 作为新消费者域的 Yield，不运行原录制域，也不重建原 drive 的完整 Output。其 Feed 为 `()`，整次 Output 为完成帧数报告；父域必须等当前 drive 完成才读取报告。需要对重新执行得到的 Feed 作数值或业务比较时，使用 `ReplayRhythm::with_comparator(...)`；它按真实 D 解码并比较，不能把任意序列化字节当作 f64。`ReplayMode::OutputOnly` 和 `FeedCheck::Tolerance` 不是受支持的执行入口，在 drive 开始前报错，不应作为推荐写法。
 
-录制仍只覆盖成功周期的 Yield/Feed，不记录旁路读取顺序、对象状态、失败/停止决定和外部副作用。消费者仍会执行真实代码；不承诺自动确定性回放或副作用隔离。此前审计快照上的验证证据保留为历史记录，本次技能提交不表示核心已经整合或成立稳定版本。
+Replay 的 serde/bincode 字段表示与 native IPC 的本机内存表示不同，即使二者使用同一个消息类型，也不能直接交换这两种字节缓冲。核心有真实 System 的组合回归覆盖这一点；技能自带例程及已有独立评估产物没有执行 Replay，不将其通过情况算作 Replay 验证。
+
+录制仍只覆盖成功周期的 Yield/Feed，不记录旁路读取顺序、对象状态、失败/停止决定和外部副作用。消费者仍会执行真实代码；不承诺自动确定性回放或副作用隔离。历史验证证据保留其原始来源，当前 main 的工程候选也不代表稳定发行。

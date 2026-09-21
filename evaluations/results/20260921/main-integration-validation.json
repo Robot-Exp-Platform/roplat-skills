@@ -1,0 +1,55 @@
+{
+  "date": "2026-09-21",
+  "core_ref": "main",
+  "core_commit": "c595393df441056a25b2af8bedfcbd0f598b3fec",
+  "core_dirty": false,
+  "core_integration_pr": "https://github.com/Robot-Exp-Platform/roplat/pull/58",
+  "verified_source_digest": "ba83f9dac4793b3beafba08f35a925da1a92d0ea85ec8937693e23e1318894da",
+  "digest_definition": "skills/roplat-development/references/version.json",
+  "kind": "rerun of existing executable artifacts; not a new independent generation evaluation",
+  "scope": "Rust System macro, nested rhythms, lifecycle, execution outcomes and existing in-process sideband examples. This skill run does not test Replay, typed IPC, Python/C++ boundaries, hardware or performance. Core integration evidence is separate.",
+  "core_integration_evidence": "https://github.com/Robot-Exp-Platform/roplat/blob/c595393df441056a25b2af8bedfcbd0f598b3fec/docs/candidate/integration-validation.md",
+  "rustc": "rustc 1.100.0-nightly (67eda617e 2026-09-10)",
+  "cargo": "cargo 1.100.0-nightly (3c0b53475 2026-09-04)",
+  "not_a_performance_measurement": true,
+  "suites": [
+    {
+      "suite": "control_layers",
+      "reproduce": [
+        "python3",
+        "skills/roplat-development/scripts/verify_examples.py",
+        "--roplat",
+        "<core-repository>",
+        "--offline"
+      ],
+      "run_assertions_passed": true,
+      "clippy_D_warnings_passed": true,
+      "raw_log_sha256": {
+        "run.log": "78c51606c15de0b9fe86159276ea07c169a894e539b6eed7171c35371fec3935",
+        "clippy.log": "7ac1d638947f5cbb3262b5e4eee55f7d94bff0f7e4b5c72171cbdcd9774d6bf5"
+      }
+    },
+    {
+      "suite": "independent-use-existing-artifacts",
+      "reproduce": [
+        "python3",
+        "evaluations/verify.py",
+        "--roplat",
+        "<core-repository>",
+        "--offline"
+      ],
+      "run_assertions_passed": true,
+      "clippy_D_warnings_passed": true,
+      "raw_log_sha256": {
+        "run.log": "cdc6e209c5903a942b67468930444859ef698b7e64d6a7810ae0a18677b9acda",
+        "clippy.log": "323f2acd7e246744fb09eca2908d4ce391fcbb60e0050fe190b42b0aee78d577"
+      }
+    }
+  ],
+  "skill_format_validation": {
+    "validator": "skill-creator/scripts/quick_validate.py",
+    "result": "passed",
+    "python": "/opt/miniconda3/bin/python3.14",
+    "note": "The initial default Python lacked PyYAML; the installed Python 3.14 interpreter provided it. No dependency was installed."
+  }
+}

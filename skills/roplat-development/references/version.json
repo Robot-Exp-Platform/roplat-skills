@@ -1,12 +1,12 @@
 {
   "core_repository": "https://github.com/Robot-Exp-Platform/roplat",
-  "core_ref": "codex/communication-boundary-cost",
-  "core_commit": "e1bab70beeccec2a19953390f39ac3f4945c771a",
-  "status": "verified-development-commit-not-core-release",
-  "scope": "System macro, multi-layer rhythms, lifecycle, execution outcomes and in-process sideband examples rerun on this clean commit. Communication boundary capabilities are documented with their remaining restricted-value and Python opaque limitations. No claim of integrated Replay or stable core release.",
+  "core_ref": "main",
+  "core_commit": "c595393df441056a25b2af8bedfcbd0f598b3fec",
+  "status": "verified-internal-engineering-candidate-not-public-release",
+  "scope": "System macro, multi-layer rhythms, lifecycle, execution outcomes and in-process sideband examples rerun on this clean main commit. Native communication contracts and Replay capabilities are integrated. This skill rerun does not replace the core integration matrix, exercise Replay or foreign-language boundaries, or establish stable-release, arbitrary-byte-safety or deterministic-system-replay guarantees.",
   "validation": "scripts/verify_examples.py",
   "example_dependency_lock": "assets/control_layers/Cargo.lock",
-  "verified_source_digest": "9052808cbdd3feea17084fe7486a24f9d5f3ccfaf6cea0d611fdb96069b17164",
+  "verified_source_digest": "ba83f9dac4793b3beafba08f35a925da1a92d0ea85ec8937693e23e1318894da",
   "digest_scope": [
     "roplat",
     "roplat_system",
@@ -15,15 +15,6 @@
   ],
   "digest_file_selection": "git-tracked Rust sources (*.rs) and Cargo.toml files under digest_scope",
   "digest_algorithm": "SHA256 of json.dumps(relative_path_to_file_sha256, sort_keys=True)",
-  "related_development": {
-    "replay": {
-      "core_ref": "codex/replay-capabilities",
-      "core_commit": "50e55932be516d3266c0001c43abd6bb9c20a762",
-      "integrated_into_verified_core": false,
-      "skill_examples_rerun_on_this_commit": false,
-      "reference": "docs/replay.md"
-    }
-  },
   "historical_validation": {
     "core_repository": "https://github.com/Robot-Exp-Platform/roplat",
     "core_ref": "codex/core-candidate-consolidation",
@@ -41,5 +32,24 @@
     ],
     "digest_algorithm": "SHA256 of json.dumps(relative_path_to_file_sha256, sort_keys=True)",
     "audit_snapshot_manifest_digest": "19f935f3102a30822958c29c2f16f7fdf177e017e879c262aab8a48f57c02885"
-  }
+  },
+  "integrated_changes": {
+    "communication": {
+      "source_commit": "e1bab70beeccec2a19953390f39ac3f4945c771a",
+      "integrated_into_verified_core": true,
+      "reference": "docs/communication-boundary.md"
+    },
+    "replay": {
+      "source_commit": "50e55932be516d3266c0001c43abd6bb9c20a762",
+      "integrated_into_verified_core": true,
+      "reference": "docs/replay.md"
+    }
+  },
+  "previous_verification": {
+    "core_ref": "codex/communication-boundary-cost",
+    "core_commit": "e1bab70beeccec2a19953390f39ac3f4945c771a",
+    "verified_source_digest": "9052808cbdd3feea17084fe7486a24f9d5f3ccfaf6cea0d611fdb96069b17164",
+    "evidence": "https://github.com/Robot-Exp-Platform/roplat-skills/blob/72e6f2c5d75b6c1086ec6a626181484fef9bad70/evaluations/results/20260921/publication-validation.json"
+  },
+  "core_integration_evidence": "docs/candidate/integration-validation.md"
 }
