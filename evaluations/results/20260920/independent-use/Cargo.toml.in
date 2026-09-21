@@ -1,0 +1,9 @@
+[package]
+name = "roplat-skill-independent-eval"
+version = "0.1.0"
+edition = "2024"
+publish = false
+[workspace]
+[dependencies]
+roplat = { path = @ROPLAT_CRATE_PATH@ }
+tokio = { version = "=1.48.0", features = ["rt", "macros", "sync", "time"] }

@@ -1,0 +1,11 @@
+[package]
+name = "roplat-skill-control-layers"
+version = "0.0.0"
+edition = "2024"
+publish = false
+
+[workspace]
+
+[dependencies]
+roplat = { path = @ROPLAT_CRATE_PATH@ }
+tokio = { version = "1", features = ["rt", "rt-multi-thread", "macros", "sync", "time"] }

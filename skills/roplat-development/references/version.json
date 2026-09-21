@@ -1,0 +1,45 @@
+{
+  "core_repository": "https://github.com/Robot-Exp-Platform/roplat",
+  "core_ref": "codex/communication-boundary-cost",
+  "core_commit": "e1bab70beeccec2a19953390f39ac3f4945c771a",
+  "status": "verified-development-commit-not-core-release",
+  "scope": "System macro, multi-layer rhythms, lifecycle, execution outcomes and in-process sideband examples rerun on this clean commit. Communication boundary capabilities are documented with their remaining restricted-value and Python opaque limitations. No claim of integrated Replay or stable core release.",
+  "validation": "scripts/verify_examples.py",
+  "example_dependency_lock": "assets/control_layers/Cargo.lock",
+  "verified_source_digest": "9052808cbdd3feea17084fe7486a24f9d5f3ccfaf6cea0d611fdb96069b17164",
+  "digest_scope": [
+    "roplat",
+    "roplat_system",
+    "roplat_macros",
+    "roplat_launch"
+  ],
+  "digest_file_selection": "git-tracked Rust sources (*.rs) and Cargo.toml files under digest_scope",
+  "digest_algorithm": "SHA256 of json.dumps(relative_path_to_file_sha256, sort_keys=True)",
+  "related_development": {
+    "replay": {
+      "core_ref": "codex/replay-capabilities",
+      "core_commit": "50e55932be516d3266c0001c43abd6bb9c20a762",
+      "integrated_into_verified_core": false,
+      "skill_examples_rerun_on_this_commit": false,
+      "reference": "docs/replay.md"
+    }
+  },
+  "historical_validation": {
+    "core_repository": "https://github.com/Robot-Exp-Platform/roplat",
+    "core_ref": "codex/core-candidate-consolidation",
+    "scope": "Rust Node / Rhythm / System audit snapshot, native and independently validated sideband communication. IPC raw Copy encoding, incomplete Replay modes and Python transparent Node bridge remain unchanged by author decision, outside accepted paths. This is not a frozen or released core version.",
+    "validation": "scripts/verify_examples.py",
+    "example_dependency_lock": "assets/control_layers/Cargo.lock",
+    "base_commit": "577d642569f03665bbaded994cd5db631cc36ee3",
+    "verified_source_digest": "b7b35e868303b07b0dafe30975545cfaa2ac4d963fb51071e81195b7e1ae0f9f",
+    "status": "uncommitted-consolidation-audit-snapshot",
+    "digest_scope": [
+      "roplat",
+      "roplat_system",
+      "roplat_macros",
+      "roplat_launch"
+    ],
+    "digest_algorithm": "SHA256 of json.dumps(relative_path_to_file_sha256, sort_keys=True)",
+    "audit_snapshot_manifest_digest": "19f935f3102a30822958c29c2f16f7fdf177e017e879c262aab8a48f57c02885"
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "date": "2026-09-21",
+  "core_commit": "e1bab70beeccec2a19953390f39ac3f4945c771a",
+  "core_dirty": false,
+  "verified_source_digest": "9052808cbdd3feea17084fe7486a24f9d5f3ccfaf6cea0d611fdb96069b17164",
+  "kind": "rerun of existing executable artifacts; not a new independent generation evaluation",
+  "rustc": "rustc 1.100.0-nightly (67eda617e 2026-09-10)",
+  "cargo": "cargo 1.100.0-nightly (3c0b53475 2026-09-04)",
+  "suites": [
+    {
+      "suite": "control_layers",
+      "reproduce": [
+        "python3",
+        "skills/roplat-development/scripts/verify_examples.py",
+        "--roplat",
+        "<core-repository>",
+        "--offline"
+      ],
+      "run_assertions_passed": true,
+      "clippy_D_warnings_passed": true,
+      "raw_log_sha256": {
+        "run.log": "dac9a9cd5e4402997825cfe1319323f7304b543165322ea8b215c93c7492bc6d",
+        "clippy.log": "741dfe064cf510410b2d805548b7cddce9afd5e4fdf1a7b7109117389f64a7a7"
+      }
+    },
+    {
+      "suite": "independent-use-existing-artifacts",
+      "reproduce": [
+        "python3",
+        "evaluations/verify.py",
+        "--roplat",
+        "<core-repository>",
+        "--offline"
+      ],
+      "run_assertions_passed": true,
+      "clippy_D_warnings_passed": true,
+      "raw_log_sha256": {
+        "run.log": "413bc540106a0d65081c672f1412638ac67e4301961eb87932b9160fe76f85f6",
+        "clippy.log": "41c1c66864631a58e73c1154fc489a5d214fb574a36c310c55903289806e6e23"
+      }
+    }
+  ]
+}
