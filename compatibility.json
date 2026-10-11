@@ -1,5 +1,6 @@
 {
   "skills": {
-    "roplat-development": "skills/roplat-development/references/version.json"
+    "roplat-development": "skills/roplat-development/references/version.json",
+    "robot-behavior": "skills/robot-behavior/references/version.json"
   }
 }

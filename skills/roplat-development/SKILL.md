@@ -5,31 +5,30 @@ description: 使用 roplat 的 Node、Rhythm 和 System 宏编写、修改或排
 
 # roplat 开发
 
-目标是产出使用当前真实 API、保持静态图语义并可编译验证的程序。先核对技能内 [version.json](references/version.json) 与用户仓库版本；已有项目的依赖和当前源码优先。整个技能目录可单独复制使用。不要用旧 RFC、历史性能原型或旧生成代码猜测支持的语法。
+目标是写出**结构清楚、像机器人应用而非测试代码**的 roplat 程序：使用当前真实 API、保持静态图语义、可编译验证。先核对 [version.json](references/version.json) 与用户仓库版本；已有项目的依赖和当前源码优先。不要用旧 RFC、历史性能原型或旧生成代码猜测语法。服务范围是应用组织（节点如何拆、节律如何分层、对象在哪创建、设备之间如何通信），不包括节点内部算法实现。
 
-## 首要选择
+## 设计哲学
 
-**用 `#[roplat::system]` 表达应用的节点连接与节律组织。** 在 `impl Node` 中实现 `process`，在自定义 `impl Rhythm` 中实现 `drive`，但不要把应用层 System 改写成手工 `node.process(...).await` 调用链。手写展开代码仅适合用户明确要求底层诊断或独立性能对照；它不能替代用户要的 System 程序。遇到不支持的图形或语法，先定位限制，说明最小合法写法或需讨论的核心能力。
+- **Rhythm 拥有循环，System 拥有拓扑，Node 只拥有计算。** 应用里不手写驱动节点的循环，也不在 System 外循环调用 System。
+- **机器人决定自己的节拍。** 每台设备一个控制节律：周期开始取状态，域内算完直接交付指令。
+- **多层节律表达任务结构。** 外层分发任务或目标，内层是设备控制节律；只需“到达目标”时用运动节点代替内层。
+- **进程内静态，跨设备靠旁路。** 同周期因果数据走图边；不同设备、不同节拍之间用 `Latest` 等旁路交换最新值，不锁步。
+- **创建位置就是生命周期。** 跨周期保留的对象在外层创建；每段、每周期的状态在该域头段创建。
+- **设备是资源，不是数据。** 用 `&mut arm >> user` 借出、`user >> &mut arm` 归还；不把机器人当端口数据在节律间传递。
 
-一套对象、一个静态图位置，不是每条语句调用一次。图边定义依赖；互不依赖分支可能并发。宏决定安全的借用/拥有规划，应用代码无需自己写归还槽或模拟调度器。
+## 工作流
 
-## 按任务阅读
+1. 读 [application-design.md](references/application-design.md)，按其“设计步骤”列出设备与节拍、节律分层、节点职责、创建位置和跨域通信，再写代码。
+2. 对照 [robot_apps](assets/robot_apps/src/) 中最接近的场景：两层任务×控制（`sequence_control`）、一层运动节点（`sequence_motion`）、由 System 创建并启停设备（`sequence_owned`）、多设备旁路（`dual_arm`）。驱动能力、控制会话与适配器契约见同仓 [robot-behavior](../robot-behavior/SKILL.md) 技能。
+3. 按需查语义：语法 [syntax.md](references/syntax.md)；嵌套节律与 Input/Output/Yield/Feed [rhythm-domains.md](references/rhythm-domains.md)；生命周期、停止与错误 [execution-lifecycle.md](references/execution-lifecycle.md)；旁路与外语节点 [communication-and-languages.md](references/communication-and-languages.md)。
+4. 运行与验收：[validation.md](references/validation.md)。
 
-- 初次写 System、端口或条件分支：读 [syntax.md](references/syntax.md)，按其中真实语法写，不发明 `->`、`if` 图或 `stop_check` 配置。
-- **涉及任何嵌套节律、跨周期状态或子节律输出：先读 [rhythm-domains.md](references/rhythm-domains.md)，再看 [完整三层宏例程](assets/control_layers/src/main.rs)。** 不要仅由“循环”二字推断各层关系。
-- 创建节点、控制停止、处理错误、自定义节律：读 [execution-lifecycle.md](references/execution-lifecycle.md)。
-- 交换外部状态、选通信类型、接入 C++/Python 节点：读 [communication-and-languages.md](references/communication-and-languages.md)。
-- 编译问题、版本核对、验收：读 [validation.md](references/validation.md)。
+## 必须遵守
 
-## 编码前固定四件事
+**用 `#[roplat::system]` 表达应用的节点连接与节律组织。** 节点作者实现 `Node::process`，节律作者实现 `Rhythm::drive`；应用作者不把 System 改写成手工 `process().await` 链。手写展开只用于用户明确要求的底层诊断或性能对照。遇到不支持的结构，先定位限制并给出最小合法写法，或说明需要讨论的核心能力。
 
-1. 对象由哪一层创建，哪一层负责启用和关闭；哪些对象跨周期保留。
-2. 每个节点的 Input/Output；每个节律的 Input/Output 和 Yield/Feed。
-3. 哪些边是图中数据依赖，哪些是独立节律采样外部最新状态。
-4. 哪些错误只是业务值，哪些显式提升为框架失败，何处需要 `.outcome` 隔离处理。
-
-普通 Rust 语句只放在当前图的头段或尾段，不能插进两段 DSL 之间。生命周期与错误处理不能依靠丢弃在途 Future 完成。
+一个实例在一层图中只有一个调度位置；图边是依赖，不是语句顺序；互不依赖的分支可能并发。普通 Rust 只放在图的头段和尾段。宏负责借用与归还规划，应用代码不写归还槽或模拟调度器。
 
 ## 交付前核对
 
-实际运行相应 Rust 项目；断言输出、调用次数、跨周期状态和需要的生命周期/错误行为，不能只查看打印日志。多层例程可通过 `scripts/verify_examples.py --roplat <核心仓库> --offline` 验证。只报告真实完成的检查，标明硬件、远程服务或不受支持路径。不得因技能存在而扩大用户授权去控制设备、上传数据或发布代码。
+实际运行 Rust 项目，在调用方断言结果、调用次数、跨周期状态和需要的生命周期/错误行为；不在节点里埋断言。只报告真实完成的检查，标明硬件、远程服务或不受支持路径。技能存在不扩大用户授权：不控制设备、不上传数据、不发布代码。

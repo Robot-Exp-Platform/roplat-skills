@@ -1,0 +1,33 @@
+{
+  "date": "2026-10-11",
+  "task": "evaluations/tasks.md#D",
+  "evaluator": "independent Copilot subagent (same model family as the skill author); did not read evaluations/ rubric; had access to skill assets including robot_apps",
+  "sources": {
+    "core_commit": "faaefe02c856c35b572c75a29d694129029d584a",
+    "drives_commit": "b1d04599cf1cee743272295013b99659ee3908c9",
+    "robot_behavior_commit": "67a9456416c824dcf34b4f4233607b1a1e4f7964",
+    "platform": "Windows, PowerShell"
+  },
+  "results": {
+    "cargo_build": "pass",
+    "cargo_run": "pass; leader final q = HOME, follower final q = HOME + offset (tolerance 2e-3, asserted in main)",
+    "cargo_clippy_deny_warnings": "pass",
+    "compile_fix_iterations": 0
+  },
+  "rubric_semantic": "pass: real #[roplat::system]; robot_behavior AsyncControlRhythm; two-layer leader (TaskSequence x control rhythm); follower as sibling control domain; Latest sideband only",
+  "rubric_quality": {
+    "structure_expresses_task": "satisfied",
+    "devices_and_pacing": "satisfied",
+    "node_granularity": "satisfied",
+    "creation_location": "satisfied: MinJerk per segment in task-cycle head; servo/control outside",
+    "readability": "satisfied",
+    "verification_location": "satisfied: assertions only in main"
+  },
+  "skill_gaps_reported": [
+    "multi-segment leader with whole-task follower: per-segment done shared over sideband ends follower early; evaluator added AnnounceFinished after tasks.output (now documented in application-design.md 3.4)",
+    "Publisher is unique/non-Clone; separate channels needed for separate meanings (now documented)",
+    "validation.md / communication-and-languages.md still cited c595393 and an outdated Tokio version (fixed)",
+    "evaluator reported assets/control_layers missing; verified present, report incorrect"
+  ],
+  "limits": "Same model family as the skill author; assets nearly cover the task, so this measures guided reuse rather than unaided design. No real device, Replay or foreign-language paths."
+}

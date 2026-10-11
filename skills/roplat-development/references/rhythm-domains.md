@@ -17,7 +17,7 @@ source >> outer >> |outer_yield| {
         }
     }
 };
-outer.output >> sink;
+outer >> sink;
 ```
 
 以上是片段，各对象须有匹配类型。三处尾表达式无分号：controller Output 是 inner Feed，inner 完整 Output 是 middle Feed，middle 完整 Output 是 outer Feed。末尾的外层 `};` 结束父图语句，**不会改变最内层 controller 的 Feed**。如果在 inner 块里写 `controller;`，该 inner Feed 就是 `()`。
@@ -54,3 +54,5 @@ controller 由外层创建：外层一次 init，多个周期复用状态，结�
 ## 可执行证据
 
 [control_layers/src/main.rs](../assets/control_layers/src/main.rs) 含三个有限 FoldRhythm，每层两轮：一次 outer drive 调用 middle 两次、inner 四次、worker 八次。每层加一个 1000 偏置，故完整 Output 和某轮 Feed 明显不同。它还重复调用整个 System，断言外部对象状态保留，并在最内层创建周期局部节点验证每轮启用/关闭。
+
+机器人场景的分层（任务层分发目标 × 设备控制节律）、单层运动节点和多设备兄弟域见 [application-design.md](application-design.md) 与 [robot_apps](../assets/robot_apps/src/)。

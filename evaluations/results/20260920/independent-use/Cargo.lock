@@ -185,7 +185,7 @@ dependencies = [
 
 [[package]]
 name = "roplat"
-version = "0.2.2"
+version = "0.4.0"
 dependencies = [
  "async-trait",
  "bincode",
@@ -210,7 +210,7 @@ dependencies = [
 
 [[package]]
 name = "roplat_launch"
-version = "0.2.2"
+version = "0.4.0"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -223,7 +223,7 @@ dependencies = [
 
 [[package]]
 name = "roplat_macros"
-version = "0.2.2"
+version = "0.4.0"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -235,7 +235,7 @@ dependencies = [
 
 [[package]]
 name = "roplat_system"
-version = "0.2.2"
+version = "0.4.0"
 dependencies = [
  "proc-macro2",
  "quote",

@@ -4,19 +4,20 @@
 
 | 技能 | 用途 | 入口 |
 |---|---|---|
-| roplat-development | 用 Node / Rhythm / System 编写和修改 roplat 程序，重点教授静态组图、多层节律、生命周期与执行结果 | [SKILL.md](skills/roplat-development/SKILL.md) |
+| roplat-development | 用 Node / Rhythm / System 编写和修改 roplat 应用，重点教授设计哲学到写法：节律分层、设备控制节律、资源借出、旁路、生命周期与执行结果 | [SKILL.md](skills/roplat-development/SKILL.md) |
+| robot-behavior | 使用或实现 robot_behavior 驱动：类型化运动/控制能力、控制会话契约、原生异步会话与 roplat 适配；由 drives 中的 robot_behavior-skills 迁入并合并为一个技能 | [SKILL.md](skills/robot-behavior/SKILL.md) |
 
-当前例程已在核心 `main` 提交 `c595393` 上复验。该内部工程候选通过 [PR #58](https://github.com/Robot-Exp-Platform/roplat/pull/58) 整合消息静态契约、Python 布局缓存/返回检查及 Replay FeedSource/类型化比较；受限字段的接收值验证仍延期。版本关联见 [version.json](skills/roplat-development/references/version.json)，核心仍是未公开发行的内部版本，性能未达标项和已知限制继续保留。
+当前技能对应 roplat `0.4.0` 与 robot_behavior `0.7.0`：DSL 修订后多来源须写 `.input.N`、头段值写 `&value`、设备用 `&mut robot` 借出与归还。各技能的版本关联见 [compatibility.json](compatibility.json)。核心仍是未公开发行的内部版本，性能未达标项和已知限制继续保留。
 
 ## 使用与验证
 
 让 AI 阅读上述入口，并提供你的需求、roplat 仓库位置和使用版本。涉及多层节律时，入口会引导读取边界说明与真实宏范例。技能资产不依赖本机用户目录；验证命令：
 
 ```sh
-python3 skills/roplat-development/scripts/verify_examples.py --roplat /path/to/roplat --offline
+python3 skills/roplat-development/scripts/verify_examples.py --roplat /path/to/roplat --drives /path/to/drives --offline
 ```
 
-脚本在临时目录复制例程，并以本地核心路径构建运行，不修改 roplat 或调用机器人。最后打印临时证据目录。版本关联见 [compatibility.json](compatibility.json)，例程通过不代表所有硬件或跨语言路径通过。
+脚本在临时目录复制例程，并以本地核心路径构建运行，不修改 roplat 或调用机器人。`robot_apps` 依赖 drives 的 `robot_behavior`，不给 `--drives` 时跳过。最后打印临时证据目录。版本关联见 [compatibility.json](compatibility.json)，例程通过不代表所有硬件或跨语言路径通过。
 
 ## 集合扩展原则
 
@@ -26,6 +27,8 @@ python3 skills/roplat-development/scripts/verify_examples.py --roplat /path/to/r
 
 ## 本轮使用验收
 
-自带三层例程已通过实际运行和 Clippy。另一位未参与技能编写、但已有核心背景的评估者，未读资产实现与验收规则，独立完成了多层采样、错误隔离、兄弟异步域旁路交换三个程序；[产物与结果](evaluations/results/20260920/independent-use/EVALUATION.md)可审阅。这是独立使用验证，不是完全盲评或跨模型能力保证。
+2026-10-12（roplat 0.4.0 / robot_behavior 0.7.0）：三个子 agent 只读两个技能与核心语法文档，独立完成检测工位（同周期两次借出）、传送带跟踪（两设备不同节拍）与守卫失败处理三个程序，运行与 Clippy 均通过；其间发现并修复了一个核心调度缺陷（同一值多层扇出时节点被重复执行），并据反馈补充了技能。见[评估记录](evaluations/results/20261012/EVALUATION.md)。
+
+此前：自带三层例程已通过实际运行和 Clippy。另一位未参与技能编写、但已有核心背景的评估者，未读资产实现与验收规则，独立完成了多层采样、错误隔离、兄弟异步域旁路交换三个程序；[产物与结果](evaluations/results/20260920/independent-use/EVALUATION.md)可审阅。这是独立使用验证，不是完全盲评或跨模型能力保证。
 
 复现独立产物：`python3 evaluations/verify.py --roplat /path/to/roplat --offline`。2026-09-21 在干净的 `main` 提交 `c595393` 上重新运行自带例程与此前独立产物，运行断言和 Clippy `-D warnings` 均通过，见[整合后复验记录](evaluations/results/20260921/main-integration-validation.json)。这次复验没有重新进行独立生成评估，也未额外验证 Replay、外语节点或机器人；这些核心能力的工程证据见 [核心整合验收](https://github.com/Robot-Exp-Platform/roplat/blob/c595393df441056a25b2af8bedfcbd0f598b3fec/docs/candidate/integration-validation.md)。此前在 `e1bab70` 上的[发布复验记录](evaluations/results/20260921/publication-validation.json)保留不变。原始日志与构建产物保存在临时目录，仓库只保留代码、锁文件、参数和结果摘要。

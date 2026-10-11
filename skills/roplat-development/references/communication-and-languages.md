@@ -21,7 +21,7 @@ publisher.publish(7);
 assert_eq!(subscriber.latest(), Some(&7));
 ```
 
-工厂每个端点仅提取一次；取出后端点持有内核生存期。Latest刷新返回的借用不能跨下一次刷新，需保留快照时显式snapshot/clone。Python小消息读取返回副本；共享帧只读view需要匹配的可选buffer扩展。
+工厂每个端点仅提取一次；取出后端点持有内核生存期。`Publisher` 唯一且不可复制：不同节点要发布不同含义的信息时，各开一个通道。Latest刷新返回的借用不能跨下一次刷新，需保留快照时显式snapshot/clone。Python小消息读取返回副本；共享帧只读view需要匹配的可选buffer扩展。
 
 这些类型用于被组合的异步代码，不要求每个端点独占OS线程。IPC是另一条字节传输/发现/握手路径，不据进程内Latest测试推断IPC的性能和类型安全。
 
@@ -43,7 +43,7 @@ typed IPC 的自定义消息要求 `Copy + NativeMessage`；`#[roplat_msg]` 自�
 
 ## Replay：录制 Feed 源与类型化比较
 
-当前已验证的 `main` 提交 `c595393` 同时包含通信边界修订与 `ReplayFeedSource<D>`、类型化 `FeedComparator<D>` / `FloatTolerance`。使用其他核心版本时核对公开 API；具体用法读该版本的 `docs/replay.md` 与真实 `replay_nested` System 例程。
+核心 `main`（`c595393` 起，含当前验证的 `faaefe0`）同时包含通信边界修订与 `ReplayFeedSource<D>`、类型化 `FeedComparator<D>` / `FloatTolerance`。使用其他核心版本时核对公开 API；具体用法读该版本的 `docs/replay.md` 与真实 `replay_nested` System 例程。
 
 需要重放录制的周期输出时使用 `ReplayFeedSource<D>`：它将录制的 Feed 作为新消费者域的 Yield，不运行原录制域，也不重建原 drive 的完整 Output。其 Feed 为 `()`，整次 Output 为完成帧数报告；父域必须等当前 drive 完成才读取报告。需要对重新执行得到的 Feed 作数值或业务比较时，使用 `ReplayRhythm::with_comparator(...)`；它按真实 D 解码并比较，不能把任意序列化字节当作 f64。`ReplayMode::OutputOnly` 和 `FeedCheck::Tolerance` 不是受支持的执行入口，在 drive 开始前报错，不应作为推荐写法。
 

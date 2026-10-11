@@ -1,20 +1,41 @@
 {
   "core_repository": "https://github.com/Robot-Exp-Platform/roplat",
-  "core_ref": "main",
-  "core_commit": "c595393df441056a25b2af8bedfcbd0f598b3fec",
+  "core_ref": "copilot/dsl-resource-lending",
+  "core_version": "0.4.0",
+  "core_commit": "5d4393abdcad47a0b1849e9ad1e6c3fd0d561c66",
   "status": "verified-internal-engineering-candidate-not-public-release",
-  "scope": "System macro, multi-layer rhythms, lifecycle, execution outcomes and in-process sideband examples rerun on this clean main commit. Native communication contracts and Replay capabilities are integrated. This skill rerun does not replace the core integration matrix, exercise Replay or foreign-language boundaries, or establish stable-release, arbitrary-byte-safety or deterministic-system-replay guarantees.",
+  "scope": "control_layers (System macro, multi-layer rhythms, lifecycle, execution outcomes) and robot_apps (robot_behavior 0.7.0 resource lending with &mut: two-layer control, MotionNode, System-created arm, dual-arm sideband on a simulated arm) run with Clippy -D warnings on Windows against this core commit. Three independent sub-agent tasks (evaluations/results/20261012) also ran. This does not replace the core integration matrix, exercise Replay, foreign-language boundaries or real devices, or establish stable-release guarantees.",
   "validation": "scripts/verify_examples.py",
-  "example_dependency_lock": "assets/control_layers/Cargo.lock",
-  "verified_source_digest": "ba83f9dac4793b3beafba08f35a925da1a92d0ea85ec8937693e23e1318894da",
+  "example_dependency_locks": [
+    "assets/control_layers/Cargo.lock",
+    "assets/robot_apps/Cargo.lock"
+  ],
+  "drives": {
+    "repository": "https://github.com/Robot-Exp-Platform/drives",
+    "ref": "copilot/roplat-0.4",
+    "commit": "3a75578",
+    "robot_behavior_version": "0.7.0",
+    "robot_behavior_commit": "13fa7c4ba79573bfd8822eb13b40802253baed15"
+  },
+  "verified_source_digest": "72e53c6c8ec034b9f87a4fc9a61cfa867a4286aa137bfa0727a0a0f1281a2de9",
   "digest_scope": [
     "roplat",
     "roplat_system",
     "roplat_macros",
     "roplat_launch"
   ],
-  "digest_file_selection": "git-tracked Rust sources (*.rs) and Cargo.toml files under digest_scope",
+  "digest_file_selection": "git-tracked Rust sources (*.rs) and Cargo.toml files under digest_scope, hashed from committed blob content (independent of checkout line endings)",
   "digest_algorithm": "SHA256 of json.dumps(relative_path_to_file_sha256, sort_keys=True)",
+  "earlier_main_verification": {
+    "core_commit": "faaefe02c856c35b572c75a29d694129029d584a",
+    "verified_source_digest": "21d4ddb271deca71fb3275b5dda141a147f11ebac2110cee309104ac73dd635d",
+    "note": "roplat 0.3.0 main before the DSL revision; drives b1d0459, robot_behavior 67a9456"
+  },
+  "older_main_verification": {
+    "core_commit": "c595393df441056a25b2af8bedfcbd0f598b3fec",
+    "verified_source_digest": "ba83f9dac4793b3beafba08f35a925da1a92d0ea85ec8937693e23e1318894da",
+    "evidence": "evaluations/results/20260921/main-integration-validation.json"
+  },
   "historical_validation": {
     "core_repository": "https://github.com/Robot-Exp-Platform/roplat",
     "core_ref": "codex/core-candidate-consolidation",

@@ -1,0 +1,16 @@
+[package]
+name = "task-g"
+version = "0.0.0"
+edition = "2024"
+publish = false
+
+[workspace]
+
+[dependencies]
+roplat = { path = "E:/yixing/code/Robot-Exp/roplat/roplat" }
+robot_behavior = { path = "E:/yixing/code/Robot-Exp/drives/robot_behavior", features = ["roplat"] }
+tokio = { version = "1", features = ["rt", "macros", "sync", "time"] }
+
+# robot_behavior pins roplat by Git revision; build both against the same local core.
+[patch."ssh://git@github.com/Robot-Exp-Platform/roplat.git"]
+roplat = { path = "E:/yixing/code/Robot-Exp/roplat/roplat" }
