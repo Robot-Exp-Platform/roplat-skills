@@ -2,7 +2,7 @@
   "core_repository": "https://github.com/Robot-Exp-Platform/roplat",
   "core_ref": "copilot/dsl-resource-lending",
   "core_version": "0.4.0",
-  "core_commit": "34b05bb326fd576b65c3372ddc03cd913dbe2b4b",
+  "core_commit": "630c51daa4c3026a603996e5af304bf061b8c7b1",
   "status": "verified-internal-engineering-candidate-not-public-release",
   "scope": "control_layers (System macro, multi-layer rhythms, lifecycle, execution outcomes) and robot_apps (robot_behavior 0.7.0 resource lending with &mut: two-layer control, MotionNode, System-created arm, dual-arm sideband on a simulated arm) run with Clippy -D warnings on Windows against this core commit. Three independent sub-agent tasks (evaluations/results/20261012) also ran. This does not replace the core integration matrix, exercise Replay, foreign-language boundaries or real devices, or establish stable-release guarantees.",
   "validation": "scripts/verify_examples.py",
@@ -17,7 +17,7 @@
     "robot_behavior_version": "0.7.0",
     "robot_behavior_commit": "13fa7c4ba79573bfd8822eb13b40802253baed15"
   },
-  "verified_source_digest": "30f771b1054277d1ed07bdb9e82d528a32549419b9c3a42d787c9d407e58ffe5",
+  "verified_source_digest": "b0ba4ed69db37074393762372b458ad0b6069088eb245cf9876d353333604bec",
   "digest_scope": [
     "roplat",
     "roplat_system",
