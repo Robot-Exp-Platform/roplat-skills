@@ -122,7 +122,7 @@ follower_control >> &mut follower;
 |---|---|---|
 | 在 System 外 `for goal in goals { arm = move_to(arm, goal).await?; }` | 循环脱离节律与生命周期管理；中途失败丢失设备 | 外层任务节律分发目标（3.2/3.3） |
 | 把机器人当数据在节律 Yield/Feed 里传来传去，或写 `Handoff` 节点 | 失败路径丢失设备，结构难读 | `&mut arm` 借出与归还 |
-| 在借出使用者的源端写 `?`（`motion.1? >> next`） | 可能先于归还退出 | 先 `motion.0 >> &mut arm`，再独立 `motion.1?;` |
+| 归还要等一个带 `?` 的下游（`motion.1? >> verdict; verdict >> park; park >> &mut arm`） | 宏拒绝：失败会丢弃本体 | 先 `motion.0 >> &mut arm`，再独立 `motion.1?;` |
 | 手写 `loop { node.process(x).await }` 代替 System | 失去静态结构、归还与停止语义 | 节律 + System 图 |
 | 把所有算法塞进一个大节点 | 无法复用、图里看不出结构 | 按职责拆节点，用边表达数据流 |
 | 用全局 `Arc<Mutex<_>>` 在节点间传值 | 绕开图的因果顺序与所有权 | 同周期用图边；跨域用 Latest/SPSC |

@@ -48,8 +48,21 @@ motion.1?;                                                     // 在本体归�
 - 同一资源可在一个图中多次使用，按书写顺序串行；每次借出必须在本图归还，宏会拒绝未归还、重复借出、`&mut arm.field` 以及把同名当节点使用。
 - 本层 `let` 创建的资源由本层 `Lifecycle` 启停（设备类型需实现 Lifecycle）；入口函数参数也可借出，由调用方管理。内层域可借出外层资源。
 - 尾段看到的是 `ResourceSlot`：可经 Deref 调用方法（`arm.joints()`），用 `arm.into_inner()` 取出返回。
-- drive 未完成时节律经 `reclaim_input` 交还本体；使用者自己的独立 `user.x?;` 在归还后检查。不要在借出使用者的连线源端写 `?`（`user.1? >> next`），它可能先于归还退出。控制域内部的 `guard?`（持有身体的是节律）不受此限：失败后节律交还、创建层照常关闭。
-- 借出给节律时归还使用其 Output（`control >> &mut arm`），因此同一图不能再读 `control.outcome`。当前“一段失败后继续下一段”需要把该段放进一个独立的子域并在其父层处理 outcome；多数设备任务应让失败中止整个任务。
+- drive 未完成时节律经 `reclaim_input` 交还本体；使用者自己的独立 `user.x?;` 在归还后检查。可能在借出后、归还前以 `?` 离开并跳过归还的写法会被宏拒绝（诊断“`arm` is lent while `x` can leave the graph with `?` ...”），如归还要等 `user.1? >> verdict` 的下游；改为先归还、再独立检查。控制域内部的 `guard?`（持有本体的是节律）合法：失败后节律交还、创建层照常关闭。借出窗口内的节点不做停止准入检查，已开始的窗口先走完。
+- 借出给节律时归还使用其 Output（`control >> &mut arm`），因此同一图不能再读 `control.outcome`。“一段失败后继续下一段”的标准写法是用单次子域隔离这一段：
+
+  ```rust
+  goals >> |goal| {
+      let mut segment = (0..1).into_rhythm();
+      segment >> {
+          &mut arm >> control >> |(state, dt)| { /* ... */ guard? };
+          control >> &mut arm;
+      };
+      segment.outcome >> record;      // Execution<()>：本段成败，任务继续
+  };
+  ```
+
+  多数设备任务仍应让失败中止整个任务；只在后续段与失败段无关时才继续。
 - 节点判定的业务拒绝用自己的错误类型并实现 `Into<RoplatError>`，或用 `RoplatError::NodeProcessing(..)`；设备错误 `RobotException` 已可转为 `RoplatError`。
 - 不再需要 `Handoff`、`TaskSequence` 一类“把机器人当数据传递”的适配节点。
 
