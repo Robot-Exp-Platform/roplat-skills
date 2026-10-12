@@ -1,13 +1,13 @@
 {
   "robot_behavior_repository": "https://github.com/Robot-Exp-Platform/robot_behavior",
   "robot_behavior_version": "0.7.0",
-  "robot_behavior_ref": "copilot/resource-lending-0.7",
-  "robot_behavior_commit": "13fa7c4ba79573bfd8822eb13b40802253baed15",
+  "robot_behavior_ref": "main",
+  "robot_behavior_commit": "e6455314b67e2a749e0a0606e1f7ade8f03d7871",
   "roplat_version": "0.4.0",
   "origin": {
     "repository": "https://github.com/Robot-Exp-Platform/robot_behavior-skills",
     "commit": "32faa6f3687f33bb797a77d7af13b3b39eea664e",
-    "note": "use-robot-driver and implement-robot-driver were merged into one skill; their Roplat sections were updated to the 0.7.0 resource contract."
+    "note": "use-robot-driver and implement-robot-driver were merged into one skill; their Roplat sections were updated to the 0.7.0 resource contract. The origin repository is marked superseded (bcf3cba)."
   },
   "status": "documentation-skill-not-hardware-validated",
   "scope": "Device capability and driver contract guidance. The Roplat adapter contract (MotionNode, ControlRhythm, AsyncControlRhythm, reclaim_input) is exercised by robot_behavior's own tests and by roplat-development's robot_apps on a simulated arm; no real device was run."
