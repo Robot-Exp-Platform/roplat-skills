@@ -12,6 +12,10 @@ python3 <skill目录>/scripts/verify_examples.py --roplat <核心仓库> --drive
 
 [control_layers](../assets/control_layers/src/main.rs)是语义例程：3层有限节律输出、复用对象状态、周期局部生命周期和失败后的关闭顺序均由断言验证。[robot_apps](../assets/robot_apps/src/main.rs)是应用风格范例：仿真臂上的三种航点结构与双臂旁路，由调用方断言到达位置。不能把这些特定负载的成功推广为任意DSL语法都支持，也不代表真实设备验证。
 
+## 查看静态图
+
+核对结构（尤其是 AI 写出的图）时画出来：`cargo roplat graph -p <包> [--all-targets] [--system <函数>] [--view flow|schedule] [--format svg|png|pdf|dot]`，需要 Graphviz（`ROPLAT_GRAPHVIZ_DOT` 可指定 `dot`）。它用独立 target 目录以 `roplat/graph` feature 编译，图由 System 宏展开时写出，与实际编译一致；输出在 `<target>/roplat-graph/<包>/<crate>/<函数>.<视角>.<格式>`。`flow` 是书写的图（端口、节律域、match、`&mut` 借出与归还），`schedule` 是规约后的 Seq/Par/Spawn 树和切出的通道。旁路通信、内联 `system!{}` 不画；同一 crate 内同名 System 会覆盖。应用也可直接开启 `roplat = { features = ["graph"] }`，库不要开启（feature 会合并）。核心仓库 `examples/graph_gallery` 有 7 种结构的样例。
+
 ## 常见误用
 
 | 现象 | 首先检查 |
