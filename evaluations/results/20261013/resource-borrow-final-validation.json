@@ -1,0 +1,174 @@
+{
+  "date": "2026-10-13",
+  "status": "passed-against-final-core-and-behavior-with-linked-drives-commit",
+  "sources": {
+    "core": {
+      "core_commit": "d6484b1c595b7d69e8727dc04d471f4bbf57def4",
+      "verified_source_digest": "e5bcc23ae4a00a7bf9987815e13f55a27255baa8e137d80ff79626fd28d13fde",
+      "digest_scope": [
+        "roplat",
+        "roplat_system",
+        "roplat_macros",
+        "roplat_launch"
+      ],
+      "digest_file_selection": "git-tracked Rust sources (*.rs) and Cargo.toml files under digest_scope, hashed from committed blob content (independent of checkout line endings)",
+      "digest_algorithm": "SHA256 of json.dumps(relative_path_to_file_sha256, sort_keys=True)",
+      "file_count": 139,
+      "version": "0.5.0",
+      "dirty": false
+    },
+    "robot_behavior": {
+      "commit": "1f6bf80e6fa18cfb331ea5c18db790cc85ef8e8d",
+      "version": "0.8.0",
+      "dirty": false
+    }
+  },
+  "drives_aggregate_commit": "9268ed050dfecf9c1fdea66d999f0c94a455ee64",
+  "provenance_note": "Templates compile the local core and robot_behavior checkouts at these committed revisions. The drives aggregate revision is release linkage, not an additional code dependency of these examples. Earlier development/forward results remain separate and unchanged.",
+  "toolchain": "rustc 1.100.0-nightly (67eda617e 2026-09-10)",
+  "platform": "Darwin arm64",
+  "asset_checks": [
+    {
+      "example": "control_layers",
+      "step": "run",
+      "locked": true,
+      "offline": true,
+      "returncode": 0
+    },
+    {
+      "example": "control_layers",
+      "step": "clippy",
+      "locked": true,
+      "offline": true,
+      "returncode": 0
+    },
+    {
+      "example": "robot_apps",
+      "step": "run",
+      "locked": true,
+      "offline": true,
+      "returncode": 0
+    },
+    {
+      "example": "robot_apps",
+      "step": "clippy",
+      "locked": true,
+      "offline": true,
+      "returncode": 0
+    }
+  ],
+  "source_artifacts": {
+    "asset_digest": "3e77de8c5f6fcf542e059e60b6d0a7c3c408dad98ed04726fbbd633144c69bb9",
+    "algorithm": "SHA256 of json.dumps(relative_path_to_file_sha256, sort_keys=True), raw asset file contents",
+    "file_count": 12
+  },
+  "warnings": [
+    "robot_behavior retains a manifest manual_readme warning and nightly generic_const_exprs trait-solver fallback warning; strict Clippy on the examples succeeded."
+  ],
+  "limits": [
+    "Finite mock/localhost Rust examples only; no hardware, performance, GUI, foreign-language or cross-platform claim.",
+    "The expected E0382 ownership rejection is a separate negative probe, not a passing executable target.",
+    "The forward evaluation was authored by a separate evaluator with core implementation context; it is not a blinded or cross-model study."
+  ],
+  "preserved_forward_checks": [
+    {
+      "step": "test",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--offline",
+        "--all-targets"
+      ],
+      "returncode": 0,
+      "expected_compile_rejection": false,
+      "passed": true
+    },
+    {
+      "step": "run",
+      "command": [
+        "cargo",
+        "run",
+        "--locked",
+        "--offline"
+      ],
+      "returncode": 0,
+      "expected_compile_rejection": false,
+      "passed": true
+    },
+    {
+      "step": "clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "--offline",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "returncode": 0,
+      "expected_compile_rejection": false,
+      "passed": true
+    },
+    {
+      "step": "external",
+      "command": [
+        "cargo",
+        "check",
+        "--locked",
+        "--offline",
+        "--bin",
+        "external"
+      ],
+      "returncode": 0,
+      "expected_compile_rejection": false,
+      "passed": true
+    },
+    {
+      "step": "owned",
+      "command": [
+        "cargo",
+        "check",
+        "--locked",
+        "--offline",
+        "--bin",
+        "owned"
+      ],
+      "returncode": 101,
+      "expected_compile_rejection": true,
+      "passed": true
+    }
+  ],
+  "preserved_forward_test_count": 3,
+  "skill_schema_validation": {
+    "roplat-development": "passed",
+    "robot-behavior": "passed",
+    "validator": "skill-creator/scripts/quick_validate.py"
+  },
+  "source_revisions_rechecked_after_tests": true,
+  "drives_integration_context": {
+    "preexisting_worktree_difference": "libk1 gitlink differs from the committed aggregate; intentionally preserved and excluded from this release.",
+    "scope": "Final skill validation uses the committed core and robot_behavior dependencies. This linkage does not assert a completely clean drives working tree or validate the unrelated libk1 checkout."
+  },
+  "format_finalization": {
+    "change": "rustfmt-only normalization in active robot_apps templates; control_layers unchanged. Preserved forward snapshot source bytes are unchanged.",
+    "previous_asset_digest": "910e6da619f380e80fba3435c56320322cac9bb9fc723b6bea4bf4a95d428d8d",
+    "robot_apps_rechecks": [
+      {
+        "step": "run",
+        "returncode": 0,
+        "locked": true,
+        "offline": true
+      },
+      {
+        "step": "clippy",
+        "returncode": 0,
+        "locked": true,
+        "offline": true
+      }
+    ],
+    "active_rust_files_checked": 8
+  }
+}

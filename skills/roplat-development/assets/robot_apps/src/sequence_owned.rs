@@ -20,17 +20,19 @@ pub async fn visit(waypoints: Vec<Joints>) -> RoplatResult<(Joints, bool)> {
     let mut control = ArmControl::new();
     let mut servo = JointServo::default();
 
-    tasks >> |goal| {
-        let mut path = MinJerk::towards(goal, SEGMENT);
-        &mut arm >> control >> |(state, dt)| {
-            state >> path.input.0;
-            dt >> path.input.1;
-            state >> servo.input.0;
-            path >> servo.input.1;
-            servo
+    tasks
+        >> |goal| {
+            let mut path = MinJerk::towards(goal, SEGMENT);
+            &mut arm >> control.resources.0;
+            control
+                >> |(state, dt)| {
+                    state >> path.input.0;
+                    dt >> path.input.1;
+                    state >> servo.input.0;
+                    path >> servo.input.1;
+                    servo
+                };
         };
-        control >> &mut arm;
-    };
 
     // Still connected here; the System disconnects it on the way out.
     Ok((arm.joints(), arm.is_connected()))

@@ -1,0 +1,13 @@
+[package]
+name="roplat-lifecycle-probe"
+version="0.0.0"
+edition="2024"
+publish=false
+[workspace]
+[dependencies]
+roplat-forward-test={path=".."}
+roplat={path=@ROPLAT_CRATE_PATH@}
+robot_behavior={path=@ROBOT_BEHAVIOR_PATH@,features=["roplat"]}
+tokio={version="1",features=["rt","macros","sync","time"]}
+[patch."ssh://git@github.com/Robot-Exp-Platform/roplat.git"]
+roplat={path=@ROPLAT_CRATE_PATH@}

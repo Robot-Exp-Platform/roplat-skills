@@ -5,7 +5,7 @@ description: 使用或实现 robot_behavior 机器人驱动：在应用中调用
 
 # robot_behavior 驱动能力
 
-robot_behavior 用类型化的能力 trait 描述机器人能做什么：`Robot`（生命周期与原生状态）、`MoveTo<S>`/`MoveTraj<S>`（运动空间）、`ControlWith<S>`/`AsyncControlWith<S>`（控制通道）、模型映射与状态视图。roplat 适配在默认关闭的 `roplat` feature 下。先核对用户依赖的 robot_behavior 与 roplat 版本：本技能对应 robot_behavior `0.7.0` 与 roplat `0.4.0`（见 [version.json](references/version.json)）。
+robot_behavior 用类型化的能力 trait 描述机器人能做什么：`Robot`（生命周期与原生状态）、`MoveTo<S>`/`MoveTraj<S>`（运动空间）、`ControlWith<S>`/`AsyncControlWith<S>`（控制通道）、模型映射与状态视图。roplat 适配在默认关闭的 `roplat` feature 下。先核对用户依赖的 robot_behavior 与 roplat 版本：本技能对应 robot_behavior `0.8.0` 与 roplat `0.5.0`（见 [version.json](references/version.json)）。
 
 ## 按意图选择
 
@@ -21,7 +21,7 @@ robot_behavior 用类型化的能力 trait 描述机器人能做什么：`Robot`
 
 - 设备能力、控制会话契约、驱动实现：本技能。
 - 图怎么连、节律如何分层、对象在哪创建：[roplat-development](../roplat-development/SKILL.md)。
-- 在 System 中机器人是**资源**：`&mut robot >> control >> |..| {..}; control >> &mut robot;` 借出与归还；`MotionNode` 输出 `(robot, RobotResult<()>)`，`motion.0 >> &mut robot; motion.1?;`。控制节律未完成时经 `Rhythm::reclaim_input` 交还机器人。
+- 在 System 中使用 `&mut robot >> control.resources.0; control >> |..| {..};`。`MotionNode` 的 `Resources = (R,)`、Input 为目标、Output 为 `RobotResult<()>`，写 `&mut robot >> motion.resources.0; goal >> motion; motion?;`。控制节律的 Input/Output 均为 `()`，资源可在失败、停止后继续借用，无返回边或回收钩子。
 - System 内创建的机器人由该 System 启停，设备类型需实现 `roplat::Lifecycle`（连接/断开）；作为参数传入则由调用方管理。
 
 ## 必须遵守

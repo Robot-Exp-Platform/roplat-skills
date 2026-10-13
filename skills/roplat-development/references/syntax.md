@@ -26,47 +26,33 @@ async fn run(mut source: Source, mut sink: Sink) -> roplat::RoplatResult<()> {
 | `child.outcome >> handler;` | 完整Execution交给父图显式处理 |
 | `fallible? >> next;`、`fallible.1?;` | 节点业务Result显式提升错误 |
 | `&gain >> law.input.1;` | 头段值或函数参数的副本（`(gain).clone()`） |
-| `&mut arm >> user;` / `user >> &mut arm;` | 借出资源本体 / 归还本体，见下节 |
+| `&mut arm >> user.resources.0;` | 本次调用专用的可变资源借用，见下节 |
 
 图语句的源端省略 `.output`（`node.output.x` 与 `node.x` 等价）；普通 Rust 尾段里裸名字是对象本身，引用输出必须写 `node.output`。多个来源连到同一目标时必须写 `.input.N`；`x >> b.trigger` 只排序不传值。
 
 目的端整体输入和拆分端口不能混用；拆分端口须连续、无重复。节点单实例同层执行一次：`a >> b; a >> c;` 是扇出，不是调用 a 两次；不会隐式 Clone 非 Copy 输出。对需要复制/共享的数据明确设计其类型或节点输出。
 
-## 资源：`&mut` 借出与归还
-
-设备本体不是节点，而是轮流交给使用者的资源。
+## 资源：独立的 `.resources.N` 借用通道
 
 ```rust
-&mut arm >> control >> |(state, dt)| { /* 算法 */ servo };   // 控制会话期间节律持有
-control >> &mut arm;                                           // 整次 drive 的 Output 归还
-&mut arm >> motion.input.0;                                    // 运动节点：(R, Target) -> (R, RobotResult<()>)
-goal >> motion.input.1;
-motion.0 >> &mut arm;
-motion.1?;                                                     // 在本体归还后检查
+&mut arm >> motion.resources.0;
+goal >> motion;                 // Input = Target，Output = RobotResult<()>
+motion?;
+&mut arm >> control.resources.0;
+control >> |(state, dt)| { /* 算法 */ servo };
+control.outcome >> record;      // Execution<()>，可直接处理本次会话失败
 ```
 
-- 同一资源可在一个图中多次使用，按书写顺序串行；每次借出必须在本图归还，宏会拒绝未归还、重复借出、`&mut arm.field` 以及把同名当节点使用。
-- 本层 `let` 创建的资源由本层 `Lifecycle` 启停（设备类型需实现 Lifecycle）；入口函数参数也可借出，由调用方管理。内层域可借出外层资源。
-- 尾段看到的是 `ResourceSlot`：可经 Deref 调用方法（`arm.joints()`），用 `arm.into_inner()` 取出返回。
-- drive 未完成时节律经 `reclaim_input` 交还本体；使用者自己的独立 `user.x?;` 在归还后检查。可能在借出后、归还前以 `?` 离开并跳过归还的写法会被宏拒绝（诊断“`arm` is lent while `x` can leave the graph with `?` ...”），如归还要等 `user.1? >> verdict` 的下游；改为先归还、再独立检查。控制域内部的 `guard?`（持有本体的是节律）合法：失败后节律交还、创建层照常关闭。借出窗口内的节点不做停止准入检查，已开始的窗口先走完。但规约切出的图内通道在窗口内等待时仍响应停止，本体可能随作用域被 Drop：核心只保证唯一性，丢失即该路径失效，对象可重建；丢失前处理由资源类型的 `Drop` 负责。丢失后再借出同一资源得到框架错误 `RoplatError::Resource`（可用 `once()` 子域 `.outcome` 隔离），不会 panic。
-- 借出给节律时归还使用其 Output（`control >> &mut arm`），因此同一图不能再读 `control.outcome`。“一段失败后继续下一段”的标准写法是用 `roplat::rhythm::once()` 隔离这一段（每次 drive 只跑一个周期；Input 即 Yield，Feed 即 Output）：
-
-  ```rust
-  let mut segment = roplat::rhythm::once();   // 头段创建；不要用 (0..1).into_rhythm()，它第二次 drive 不再运行
-  goals >> |goal| {
-      goal >> segment >> |target| {
-          &mut arm >> control >> |(state, dt)| { /* ... */ guard? };
-          control >> &mut arm;
-      };
-      segment.outcome >> record;      // Execution<()>：本段成败，任务继续
-  };
-  ```
-
-  需要任务返回每个目标的结果时用 `goals.into_iter().into_collect_rhythm()`：Output 是本次 drive 各周期 Feed 的 `Vec`。
-
-  多数设备任务仍应让失败中止整个任务；只在后续段与失败段无关时才继续。
-- 节点判定的业务拒绝用自己的错误类型并实现 `Into<RoplatError>`，或用 `RoplatError::NodeProcessing(..)`；设备错误 `RobotException` 已可转为 `RoplatError`。
-- 不再需要 `Handoff`、`TaskSequence` 一类“把机器人当数据传递”的适配节点。
+- Node/Rhythm 声明 `Resources = ()`、`(Arm,)` 或 `(Arm, Camera)`。核心 `ResourceSet` 提供相应的 `()`、`(&mut Arm,)`、`(&mut Arm, &mut Camera)`，借用生命周期与 `process`/完整 `drive` 相同。不是 `&mut (Arm, Camera)`，也不能把映射改为按值资源。
+- 多资源分别连接 `.resources.0`、`.resources.1`；编号连续且不重复，同一调用不能两次独占借用同一本体。目前支持最多 16 个扁平槽。单资源也必须写 `.resources.0`。
+- 当前无法规约的复杂共享资源 DAG 会明确报 `resource dependencies cannot be separated into parallel execution units`；共享资源也不能跨 `#[hard]` 单元。相关使用放在同一域，通用支持留待后续设计，不自行加锁或串行整个图。
+- 相同条件的重复 match 会合并为一次图调用；若在两次 match 之间插入同一资源的另一次使用，会破坏绑定顺序并得到明确诊断。把相关使用放入同一个域，或用独立命名的 match 表达不同调用。
+- 资源留在拥有状态里，业务 Input/Output 不携带它。删除的 `ResourceSlot`、`reclaim_input` 和 `user >> &mut arm` 不应出现在新程序中。
+- 同一资源的使用按资源绑定在源码中的出现顺序串行；独立资源按图依赖并发。业务错误 `motion?` 与资源借用无关，不需要“归还后再检查”。借用允许正常 Rust 本体替换，不承诺对象身份不变。
+- 本层创建的资源由本层 Lifecycle 启停；参数由调用方管理。内层域可借用外层资源；尾段可调用资源方法。外部按值传入、由调用方管理的资源可 `Ok(arm)` 返回；本层创建并由 Lifecycle 管理的资源需留下执行关闭钩子，尾段返回业务状态快照，不能提前移走本体。节律持有资源期间，其周期域不能同时使用同一资源。
+- Rhythm 的 `.outcome` 可直接隔离该 drive 的失败。要把一组节点作为一段隔离，可用 `once()` 子域；每次 drive 都运行一次，不能用会耗尽的 `(0..1).into_rhythm()` 替代。
+- 逐段收集业务结果可用 `into_collect_rhythm()`，其 Output 是本次各周期 Feed 的 `Vec`。仅在后续任务独立于失败段时继续。
+- Node 业务错误用业务错误类型加 `Into<RoplatError>`，或 `RoplatError::NodeProcessing(..)`；设备 `RobotException` 已有转换。
 
 ## Rust 与 DSL 分区
 

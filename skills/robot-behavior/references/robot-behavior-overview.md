@@ -269,16 +269,16 @@ trait SpaceMap<From, To> {
 
 `robot_behavior::roplat::*` 由默认关闭的 `roplat` feature 启用，设备 trait 与工具无需该 feature。
 
-- `MotionNode<R, S>`：`Input = (R, S::Target)`，`Output = (R, RobotResult<()>)`；无论成败都归还机器人。
+- `MotionNode<R, S>`：`Resources = (R,)`，`Input = S::Target`，`Output = RobotResult<()>`。
 - `SpaceMapNode<M, From, To>`：包装 `SpaceMap`。
 - `SafetyNode<F, Command>`：转换 `(Command, bool)`，类型名不代表已实现硬件安全机制。
 - `AsyncControlRhythm<R, S>`：通过原生异步会话运行，业务端口和归还规则与 ControlRhythm 相同。
-- `ControlRhythm<R, S>`：`Input = R`，`Output = R`，`Yield = (S::Obs, Duration)`，业务 `Feed = (S::Command, bool)`。
-- `RobotException` 可转为 `RoplatError`（I/O 错误来源），图中可写 `motion.1?;`。
+- `ControlRhythm<R, S>`：`Resources = (R,)`，`Input = ()`，`Output = ()`，`Yield = (S::Obs, Duration)`，业务 `Feed = (S::Command, bool)`。
+- `RobotException` 可转为 `RoplatError`（I/O 错误来源），图中可写 `motion?;`。
 
 框架层的 `Execution<T>` 与业务 Feed 分开，分别表达完成、停止、失败。ControlRhythm 通过 `control_with_flow_async` 把已完成的 Feed 转为 `Continue`，把域停止/错误转为不带算法指令的 `Break`。先完成设备结束协议再返回，并保留域错误与设备收尾错误，避免成功周期因为错误聚合而增加分配。
 
-所有协作退出归还不透明节点元组 `N`。不能靠丢弃拥有 `N` 的 Future 实现快速失败。机器人是资源：图用 `&mut robot >> control` 借出、`control >> &mut robot` 归还；drive 未完成时节律保留机器人并经 `Rhythm::reclaim_input` 交还，生成代码把它放回槽中。设备 session 收尾与最终 `Robot::shutdown` / `Lifecycle` 钩子不是同一操作。
+所有协作退出归还不透明节点元组 `N`；不能丢弃在途 Future 来实现快速失败。机器人经 `&mut robot >> control.resources.0` 在 drive 期间借用，失败无需通过 Output 或回收钩子交还。设备 session 收尾与最终 Lifecycle 钩子仍是不同操作。
 
 Node / Rhythm / 资源的创建层负责启用与关闭；在 System 内创建的机器人需实现 `roplat::Lifecycle`（连接/断开），作为参数传入则由调用方管理。传入子域不改变责任，多次 drive 不默认刷新对象状态。panic、丢弃 Future 和强制 abort 不属于协作归还保证。
 

@@ -12,7 +12,7 @@
 | 进程内静态 | 节点、节律、连接都在编译期可见；不在运行时注册、查找或动态拼图 |
 | 跨设备只靠旁路 | 不同设备的域之间没有图边，交换的是 `Latest` 最新值；不追求同步快照或锁步 |
 | 创建位置即生命周期 | 跨周期保留的对象在外层创建；每段/每周期的状态在该域头段创建，域结束即销毁 |
-| 设备是资源，不是数据 | 机器人用 `&mut arm` 借给节律或节点，用完归还；不把它当作端口数据在节律间传递 |
+| 设备是资源，不是数据 | 机器人用 `&mut arm >> user.resources.0` 为单次调用提供可变借用；不把它当作端口数据在节律间传递 |
 | 业务结果是数据 | 只在确实要中断执行时用端点 `?` 传播；需要父层处理时用 `.outcome` |
 
 ## 2. 设计步骤
@@ -29,17 +29,18 @@
 ### 3.1 设备控制节律：一个周期的计算
 
 ```rust
-&mut arm >> control >> |(state, dt)| {
+&mut arm >> control.resources.0;
+control >> |(state, dt)| {
     state >> path.input.0;
     dt >> path.input.1;
     state >> servo.input.0;
     path >> servo.input.1;
     servo
 };
-control >> &mut arm;
+
 ```
 
-- `&mut arm` 把机器人借给控制节律，会话期间由节律持有；`control >> &mut arm` 用整次 drive 的 Output 归还。会话未完成时节律经 `reclaim_input` 交还本体，创建层仍能关闭设备。
+- `.resources.0` 把机器人借给控制节律，借用覆盖整次会话；业务 Input/Output 为 `()`，失败和停止结束后仍保留资源。
 - Yield `(state, dt)` 直接解构，同一个 `state` 可连到多个消费者（Copy 值扇出）。
 - 尾表达式无分号：`servo` 的 `(command, done)` 就是本周期 Feed。`done = true` 发出最后一条指令后正常结束会话。
 - 超周期、停发、协议收尾由设备节律自己决定，应用不在图里模拟这些策略。
@@ -51,13 +52,14 @@ control >> &mut arm;
 ```rust
 tasks >> |goal| {
     let mut path = MinJerk::towards(goal, SEGMENT); // 每段新的参考
-    &mut arm >> control >> |(state, dt)| { /* 同 3.1 */ servo };
-    control >> &mut arm;
+    &mut arm >> control.resources.0;
+    control >> |(state, dt)| { /* 同 3.1 */ servo };
+
 };
-Ok(arm.into_inner())
+Ok(arm)
 ```
 
-`servo`、`control` 在外层创建，跨段保留；`path` 是段内状态，在任务周期头段创建。`arm` 是参数时由调用方管理连接；在 System 头段 `let mut arm = ...` 创建时由本 System 连接与断开（[sequence_owned.rs](../assets/robot_apps/src/sequence_owned.rs)，设备类型需实现 `Lifecycle`）。尾段的 `arm` 是资源槽：可直接调用方法，`into_inner()` 取出。
+`servo`、`control` 在外层创建，跨段保留；`path` 是段内状态，在任务周期头段创建。`arm` 是参数时由调用方管理连接；在 System 头段 `let mut arm = ...` 创建时由本 System 连接与断开（[sequence_owned.rs](../assets/robot_apps/src/sequence_owned.rs)，设备类型需实现 `Lifecycle`）。尾段的 `arm` 仍是设备本体，可调用方法取得业务状态。仅外部按值传入的资源可按示例 `Ok(arm)` 返回；本层创建并管理 Lifecycle 的资源须留到关闭钩子执行，返回状态快照而非移走本体。
 
 ### 3.3 一层节律：用 MotionNode 代替控制层
 
@@ -65,14 +67,13 @@ Ok(arm.into_inner())
 
 ```rust
 tasks >> |goal| {
-    &mut arm >> motion.input.0;
-    goal >> motion.input.1;
-    motion.0 >> &mut arm;   // MotionNode 输出 (robot, RobotResult<()>)
-    motion.1?;              // 归还后再检查运动结果
+    &mut arm >> motion.resources.0;
+    goal >> motion;
+    motion?;              // 显式提升运动错误
 };
 ```
 
-选择依据：需要逐周期参与计算（反馈控制、在线修正、与其他设备耦合）用两层；只需要“到达目标”用一层。同一周期内可以先用 `MotionNode` 到位、再借给控制节律做一段会话；两次借出按书写顺序串行。`motion.1?;` 失败时，机器人先归还，然后整个图以错误退出，后面的控制会话不会开始。
+选择依据：需要逐周期参与计算（反馈控制、在线修正、与其他设备耦合）用两层；只需要“到达目标”用一层。同一周期内可以先用 `MotionNode` 到位、再借给控制节律做一段会话；两次借出按书写顺序串行。`motion?;` 失败时，整个图以错误退出，后面的控制会话不会开始；资源仍由拥有层持有。
 
 ### 3.3.1 按段收集结果
 
@@ -83,15 +84,17 @@ tasks >> |goal| {
 （[dual_arm.rs](../assets/robot_apps/src/dual_arm.rs)）两条控制链在同一 System 中没有依赖边，是兄弟域，各按自己的节拍并发推进：
 
 ```rust
-&mut leader >> leader_control >> |(state, dt)| { ...; leader_servo >> share };
-leader_control >> &mut leader;
-&mut follower >> follower_control >> |(state, _dt)| {
+&mut leader >> leader_control.resources.0;
+leader_control >> |(state, dt)| { ...; leader_servo >> share };
+
+&mut follower >> follower_control.resources.0;
+follower_control >> |(state, _dt)| {
     state >> mirror;
     state >> follower_servo.input.0;
     mirror >> follower_servo.input.1;
     follower_servo
 };
-follower_control >> &mut follower;
+
 ```
 
 `Share` 发布本设备最新指令并原样透传，`Mirror` 读取对方最新值。读者每次拿当时最新的版本，可能跳版本，这是有意的。`Latest::<T>::new(n)` 的 `n` 是订阅者数量，`subscriber(i)` 取第 i 个。非机械臂设备（传送带、传感器）若没有自己的驱动节律，可用有限周期节律 `(0..ticks).with_period(period)`（`roplat::rhythm::WithPeriod`）驱动其节点。
@@ -102,7 +105,7 @@ follower_control >> &mut follower;
 
 ### 3.5 不再需要的构件
 
-旧版本常见的 `Handoff`（把参数送进图）、`TaskSequence`（把机器人作为 Yield/Feed 在层间传递）以及“会话节律自己持有机器人”的提案，都已被 `&mut` 资源借出取代：参数可直接借出，任意层可借用外层资源。用户仓库若仍是 robot_behavior 0.6 / roplat 0.3，按其版本的写法，不要混用。
+旧版本的 `Handoff`、把机器人放进 Yield/Feed 的 `TaskSequence`、资源返回边及 `reclaim_input` 不属于 0.5 的借用协议。已有节律若本来就内部拥有设备，可保留该所有权并声明 `Resources = ()`；不要为了统一外观强行外置设备。使用旧版本仓库时按对应版本写法，不混用。
 
 ## 4. 代码风格
 
@@ -113,16 +116,16 @@ follower_control >> &mut follower;
 - **注释写意图与选择理由**（为什么这里每段新建、为什么用旁路），不复述语法。
 - **类型别名固定设备组合**：`type ArmControl = AsyncControlRhythm<SimArm, JointPositionControl<DOF>>;`
 - **节点内不放测试代码**：不在 `process` 里 `assert!`、记录调用轨迹或计数；行为验证放在调用方或测试里。
-- **尾段只组织返回值**：`Ok(arm.into_inner())`、`Ok(child.output)`；复杂处理先 `let value = node.output;` 再交给普通 Rust。
-- **图语句省略 `.output`**：写 `path >> servo.input.1`、`motion.0 >> &mut arm`；`.output` 只在普通 Rust 尾段引用输出时使用。
+- **尾段只组织返回值**：外部拥有参数可 `Ok(arm)`，本层管理资源返回状态快照，业务端口可 `Ok(child.output)`；复杂处理先 `let value = node.output;` 再交给普通 Rust。
+- **图语句省略 `.output`**：写 `path >> servo.input.1`、`motion? >> next`；`.output` 只在普通 Rust 尾段引用输出时使用。
 
 ## 5. 反模式
 
 | 写法 | 问题 | 改为 |
 |---|---|---|
 | 在 System 外 `for goal in goals { arm = move_to(arm, goal).await?; }` | 循环脱离节律与生命周期管理；中途失败丢失设备 | 外层任务节律分发目标（3.2/3.3） |
-| 把机器人当数据在节律 Yield/Feed 里传来传去，或写 `Handoff` 节点 | 失败路径丢失设备，结构难读 | `&mut arm` 借出与归还 |
-| 归还要等一个带 `?` 的下游（`motion.1? >> verdict; verdict >> park; park >> &mut arm`） | 宏拒绝：失败会丢弃本体 | 先 `motion.0 >> &mut arm`，再独立 `motion.1?;` |
+| 把机器人当数据在节律 Yield/Feed 里传来传去，或写 `Handoff` 节点 | 失败路径丢失设备，结构难读 | `.resources.N` 可变借用 |
+| 将资源混入 Input/Output 或写旧归还边 | 0.5 不支持旧借出协议 | 声明 Resources 并连接 `.resources.N`，业务错误正常 `?` |
 | 手写 `loop { node.process(x).await }` 代替 System | 失去静态结构、归还与停止语义 | 节律 + System 图 |
 | 把所有算法塞进一个大节点 | 无法复用、图里看不出结构 | 按职责拆节点，用边表达数据流 |
 | 用全局 `Arc<Mutex<_>>` 在节点间传值 | 绕开图的因果顺序与所有权 | 同周期用图边；跨域用 Latest/SPSC |

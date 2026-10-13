@@ -26,7 +26,12 @@ pub struct MinJerk {
 
 impl MinJerk {
     pub fn towards(goal: Joints, duration: Duration) -> Self {
-        Self { goal, duration, start: None, elapsed: Duration::ZERO }
+        Self {
+            goal,
+            duration,
+            start: None,
+            elapsed: Duration::ZERO,
+        }
     }
 }
 
@@ -35,10 +40,11 @@ impl Lifecycle for MinJerk {
 }
 
 impl Node for MinJerk {
+    type Resources = ();
     type Input = (JointState<DOF>, Duration);
     type Output = Reference;
 
-    async fn process(&mut self, (state, dt): Self::Input) -> Reference {
+    async fn process(&mut self, (state, dt): Self::Input, _: ()) -> Reference {
         let start = *self.start.get_or_insert_with(|| measured(&state));
         self.elapsed += dt;
         let s = (self.elapsed.as_secs_f64() / self.duration.as_secs_f64()).min(1.0);
@@ -57,7 +63,10 @@ pub struct JointServo {
 
 impl Default for JointServo {
     fn default() -> Self {
-        Self { max_step: 0.05, tolerance: 1e-3 }
+        Self {
+            max_step: 0.05,
+            tolerance: 1e-3,
+        }
     }
 }
 
@@ -66,15 +75,18 @@ impl Lifecycle for JointServo {
 }
 
 impl Node for JointServo {
+    type Resources = ();
     type Input = (JointState<DOF>, Reference);
     type Output = (Joints, bool);
 
-    async fn process(&mut self, (state, (target, finished)): Self::Input) -> Self::Output {
+    async fn process(&mut self, (state, (target, finished)): Self::Input, _: ()) -> Self::Output {
         let q = measured(&state);
-        let command = std::array::from_fn(|i| {
-            q[i] + (target[i] - q[i]).clamp(-self.max_step, self.max_step)
-        });
-        let reached = q.iter().zip(target).all(|(q, t)| (t - q).abs() < self.tolerance);
+        let command =
+            std::array::from_fn(|i| q[i] + (target[i] - q[i]).clamp(-self.max_step, self.max_step));
+        let reached = q
+            .iter()
+            .zip(target)
+            .all(|(q, t)| (t - q).abs() < self.tolerance);
         (command, finished && reached)
     }
 }
@@ -95,10 +107,11 @@ impl Lifecycle for Share {
 }
 
 impl Node for Share {
+    type Resources = ();
     type Input = Reference;
     type Output = Reference;
 
-    async fn process(&mut self, command: Reference) -> Reference {
+    async fn process(&mut self, command: Reference, _: ()) -> Reference {
         self.latest.publish(command);
         command
     }
@@ -122,12 +135,15 @@ impl Lifecycle for Mirror {
 }
 
 impl Node for Mirror {
+    type Resources = ();
     type Input = JointState<DOF>;
     type Output = Reference;
 
-    async fn process(&mut self, state: JointState<DOF>) -> Reference {
+    async fn process(&mut self, state: JointState<DOF>, _: ()) -> Reference {
         match self.leader.latest() {
-            Some(&(q, leader_done)) => (std::array::from_fn(|i| q[i] + self.offset[i]), leader_done),
+            Some(&(q, leader_done)) => {
+                (std::array::from_fn(|i| q[i] + self.offset[i]), leader_done)
+            }
             None => (measured(&state), false),
         }
     }

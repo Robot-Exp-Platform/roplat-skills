@@ -20,7 +20,11 @@ pub struct SimArm {
 
 impl SimArm {
     pub fn new(q: Joints) -> Self {
-        Self { q, period: Duration::from_secs_f64(Self::CONTROL_PERIOD), connected: false }
+        Self {
+            q,
+            period: Duration::from_secs_f64(Self::CONTROL_PERIOD),
+            connected: false,
+        }
     }
 
     pub fn joints(&self) -> Joints {
@@ -32,7 +36,10 @@ impl SimArm {
     }
 
     fn observe(&self) -> JointState<DOF> {
-        JointState::from_meas(JointSample { q: Some(self.q), ..Default::default() })
+        JointState::from_meas(JointSample {
+            q: Some(self.q),
+            ..Default::default()
+        })
     }
 }
 

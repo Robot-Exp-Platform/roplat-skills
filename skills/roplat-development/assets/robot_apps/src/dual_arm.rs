@@ -15,8 +15,8 @@ type ArmControl = AsyncControlRhythm<SimArm, JointPositionControl<DOF>>;
 
 #[roplat::system]
 pub async fn leader_follower(
-    leader: SimArm,
-    follower: SimArm,
+    mut leader: SimArm,
+    mut follower: SimArm,
     goal: Joints,
     offset: Joints,
 ) -> RoplatResult<(SimArm, SimArm)> {
@@ -31,22 +31,24 @@ pub async fn leader_follower(
     let mut mirror = Mirror::new(leader_command.subscriber(0), offset);
     let mut follower_servo = JointServo::default();
 
-    &mut leader >> leader_control >> |(state, dt)| {
-        state >> path.input.0;
-        dt >> path.input.1;
-        state >> leader_servo.input.0;
-        path >> leader_servo.input.1;
-        leader_servo >> share
-    };
-    leader_control >> &mut leader;
+    &mut leader >> leader_control.resources.0;
+    leader_control
+        >> |(state, dt)| {
+            state >> path.input.0;
+            dt >> path.input.1;
+            state >> leader_servo.input.0;
+            path >> leader_servo.input.1;
+            leader_servo >> share
+        };
 
-    &mut follower >> follower_control >> |(state, _dt)| {
-        state >> mirror;
-        state >> follower_servo.input.0;
-        mirror >> follower_servo.input.1;
-        follower_servo
-    };
-    follower_control >> &mut follower;
+    &mut follower >> follower_control.resources.0;
+    follower_control
+        >> |(state, _dt)| {
+            state >> mirror;
+            state >> follower_servo.input.0;
+            mirror >> follower_servo.input.1;
+            follower_servo
+        };
 
-    Ok((leader.into_inner(), follower.into_inner()))
+    Ok((leader, follower))
 }

@@ -11,16 +11,17 @@ use crate::sim::{DOF, Joints, SimArm};
 type MoveJoints = MotionNode<SimArm, JointSpace<DOF>>;
 
 #[roplat::system]
-pub async fn visit(arm: SimArm, waypoints: Vec<Joints>) -> RoplatResult<SimArm> {
+pub async fn visit(mut arm: SimArm, waypoints: Vec<Joints>) -> RoplatResult<SimArm> {
     let mut tasks = waypoints.into_iter().into_rhythm();
     let mut motion = MoveJoints::new();
 
-    tasks >> |goal| {
-        &mut arm >> motion.input.0;
-        goal >> motion.input.1;
-        motion.0 >> &mut arm; // (robot, result): the robot comes back either way
-        motion.1?; // a failed motion ends the task after the robot is home
-    };
+    tasks
+        >> |goal| {
+            &mut arm >> motion.resources.0;
+            goal >> motion;
 
-    Ok(arm.into_inner())
+            motion?; // business failure ends the task; the resource remains owned
+        };
+
+    Ok(arm)
 }
