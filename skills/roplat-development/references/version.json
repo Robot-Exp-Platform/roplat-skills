@@ -13,12 +13,14 @@
   "drives": {
     "repository": "https://github.com/Robot-Exp-Platform/drives",
     "ref": "codex/resource-borrow-channel",
-    "commit": "9268ed050dfecf9c1fdea66d999f0c94a455ee64",
+    "commit": "143c6a1ce196d1920203c6358117b859ab890df9",
     "robot_behavior_version": "0.8.0",
     "robot_behavior_commit": "1f6bf80e6fa18cfb331ea5c18db790cc85ef8e8d",
     "integration_context": {
       "preexisting_worktree_difference": "libk1 gitlink differs from the committed aggregate; intentionally preserved and excluded from this release.",
-      "scope": "Final skill validation uses the committed core and robot_behavior dependencies. This linkage does not assert a completely clean drives working tree or validate the unrelated libk1 checkout."
+      "scope": "Final skill validation uses the committed core and robot_behavior dependencies. This linkage does not assert a completely clean drives working tree or validate the unrelated libk1 checkout.",
+      "verified_aggregate_commit": "9268ed050dfecf9c1fdea66d999f0c94a455ee64",
+      "release_linkage_note": "143c6a1 corrects a review-document type spelling after 9268ed0; code, manifests and lockfiles are unchanged."
     }
   },
   "previous_resource_lending_verification": {

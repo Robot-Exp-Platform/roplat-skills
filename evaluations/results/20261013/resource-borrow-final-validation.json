@@ -23,7 +23,7 @@
       "dirty": false
     }
   },
-  "drives_aggregate_commit": "9268ed050dfecf9c1fdea66d999f0c94a455ee64",
+  "drives_aggregate_commit": "143c6a1ce196d1920203c6358117b859ab890df9",
   "provenance_note": "Templates compile the local core and robot_behavior checkouts at these committed revisions. The drives aggregate revision is release linkage, not an additional code dependency of these examples. Earlier development/forward results remain separate and unchanged.",
   "toolchain": "rustc 1.100.0-nightly (67eda617e 2026-09-10)",
   "platform": "Darwin arm64",
@@ -150,7 +150,9 @@
   "source_revisions_rechecked_after_tests": true,
   "drives_integration_context": {
     "preexisting_worktree_difference": "libk1 gitlink differs from the committed aggregate; intentionally preserved and excluded from this release.",
-    "scope": "Final skill validation uses the committed core and robot_behavior dependencies. This linkage does not assert a completely clean drives working tree or validate the unrelated libk1 checkout."
+    "scope": "Final skill validation uses the committed core and robot_behavior dependencies. This linkage does not assert a completely clean drives working tree or validate the unrelated libk1 checkout.",
+    "verified_aggregate_commit": "9268ed050dfecf9c1fdea66d999f0c94a455ee64",
+    "release_linkage_note": "Final drives release linkage includes the documentation-only type spelling fix in 143c6a1; tested code, manifests and lockfiles remain those in 9268ed0."
   },
   "format_finalization": {
     "change": "rustfmt-only normalization in active robot_apps templates; control_layers unchanged. Preserved forward snapshot source bytes are unchanged.",
