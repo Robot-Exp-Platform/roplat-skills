@@ -57,9 +57,10 @@ impl Lifecycle for Source {
     }
 }
 impl Node for Source {
+    type Resources = ();
     type Input = ();
     type Output = RoplatResult<i64>;
-    async fn process(&mut self, (): ()) -> Self::Output {
+    async fn process(&mut self, (): (), _: ()) -> Self::Output {
         assert!(self.activity.active);
         self.activity.record("process");
         if self.fail {
@@ -98,9 +99,10 @@ impl Lifecycle for Worker {
     }
 }
 impl Node for Worker {
+    type Resources = ();
     type Input = i64;
     type Output = i64;
-    async fn process(&mut self, value: i64) -> i64 {
+    async fn process(&mut self, value: i64, _: ()) -> i64 {
         assert!(self.activity.active);
         self.calls += 1;
         self.activity.record("process");
@@ -134,6 +136,7 @@ impl Lifecycle for FoldRhythm {
     }
 }
 impl Rhythm for FoldRhythm {
+    type Resources = ();
     type Input = i64;
     type Output = i64;
     type Yield = i64;
@@ -144,6 +147,7 @@ impl Rhythm for FoldRhythm {
         mut nodes: N,
         mut domain: F,
         input: i64,
+        _: (),
         context: ExecutionContext,
     ) -> (Execution<i64>, N)
     where

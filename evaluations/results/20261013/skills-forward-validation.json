@@ -1,0 +1,93 @@
+{
+  "task": "Forward authoring test: two same-typed robot resources, fallible custom node, handled failure, subsequent reuse, creator lifecycle",
+  "workspace": "/tmp/roplat-forward-test.RSH4GW",
+  "design": {
+    "devices_and_cadence": "Two independent BenchArm instances with immediate-completion mock point-to-point JointSpace<2> motion; no periodic control session needed.",
+    "rhythm_layers": "One once() child failure-isolation domain, then parent outcome handling and separate park MotionNodes.",
+    "node_responsibilities": [
+      "PositionFixture borrows both arms and issues ordered motion",
+      "RetireFixture handles Execution and chooses parking goals",
+      "MotionNode performs one parking move per resource"
+    ],
+    "creation": "Both arms and nodes are parent-System-created; parent calls init once and reverse-order shutdown.",
+    "communication": "Business goals use graph edges; resources use separate resources.0/1 slots; Journal is mock-backend observation only."
+  },
+  "versions": {
+    "roplat_manifest": "0.5.0",
+    "roplat_head": "1a4214906fbbc2159ec1147a2dcd069dd811630a",
+    "robot_behavior_manifest": "0.8.0",
+    "robot_behavior_head": "8c21c7ed0594f62425c4348fdcf61e16d30e696c",
+    "note": "Both source repositories have existing migration changes; the tested sources are the local working trees, not just those HEAD commits.",
+    "rustc": "rustc 1.100.0-nightly (67eda617e 2026-09-10)",
+    "cargo": "cargo 1.100.0-nightly (3c0b53475 2026-09-04)"
+  },
+  "checks": [
+    {
+      "command": "cargo test --offline --locked --all-targets",
+      "result": "passed: 3 integration tests, 0 failures"
+    },
+    {
+      "command": "cargo fmt --all",
+      "result": "passed"
+    },
+    {
+      "command": "cargo run --offline --locked",
+      "result": "passed; right rejected after left accepted, both parked, right then left shutdown",
+      "log": "run.log"
+    },
+    {
+      "command": "cargo clippy --offline --locked --all-targets -- -D warnings",
+      "result": "passed",
+      "log": "clippy.log"
+    },
+    {
+      "command": "cargo check --offline --bin external (probes workspace)",
+      "result": "passed",
+      "log": "probes/external.log"
+    },
+    {
+      "command": "cargo check --offline --bin owned (probes workspace)",
+      "result": "expected compile rejection E0382: borrow of moved local arm",
+      "log": "probes/owned.log"
+    }
+  ],
+  "findings": [
+    {
+      "severity": "documentation correctness",
+      "source": "roplat-development/references/syntax.md, resource lifecycle bullet",
+      "finding": "Unqualified tail Ok(arm) guidance immediately follows local-creation lifecycle wording. A locally created lifecycle-managed resource cannot be returned by value because shutdown still borrows it. External by-value parameter return compiles.",
+      "suggestion": "Qualify Ok(arm) to externally supplied objects; use business-state snapshots for locally created resources."
+    },
+    {
+      "severity": "minor authoring ambiguity",
+      "source": "robot-behavior/references/implement-robot-driver.md import rule and Robot/MoveTo snippets; use-robot-driver import rule",
+      "finding": "driver::* and behavior::* do not export RobotResult or RobotException; initial authoring compile produced E0425/E0433 until explicit root imports were added.",
+      "suggestion": "Add use robot_behavior::{RobotException, RobotResult} where the snippets need these types."
+    }
+  ],
+  "observed_warnings": [
+    "Existing robot_behavior manifest manual_readme warning",
+    "Existing nightly generic_const_exprs next-solver fallback warning"
+  ],
+  "limits": "Device-free finite mock only. No hardware, network, GUI, repository edits, commits, or pushes. The probes workspace intentionally includes one noncompiling binary.",
+  "resolutions": {
+    "lifecycle_wording": "Qualified in current core syntax and skill syntax/application-design: return externally supplied objects by value; local Lifecycle-managed objects remain through shutdown.",
+    "error_imports": "Both driver guides now identify RobotResult and RobotException as explicit root imports."
+  },
+  "preserved_artifacts": {
+    "directory": "evaluations/results/20261013/forward-use",
+    "source_and_lock_files": "Copied verbatim from the independently authored project; original results and worktree provenance above are unchanged.",
+    "manifests": "Cargo.toml.in and probes/Cargo.toml.in replace local dependency paths with JSON-quoted TOML path placeholders.",
+    "sha256": {
+      "Cargo.lock": "3ee78ed3e99f7e79da9f5dd14945854a89f3c8d32ea42bcb938931630a489e4f",
+      "src/lib.rs": "6610b769a872eabc5fff9afa9b43c84f08f2761c700da6c5fff61bcb2d8772f4",
+      "src/main.rs": "dce73d9438ca14f6bd4c833dd7f018fe2d1d7a6ddbeba4c1ef849bfb55729c9f",
+      "src/mock_arm.rs": "bcff48c2647b4243ad36ca49c3e379fffe2b480257e14cef99b9ea25f8f55612",
+      "src/nodes.rs": "8b2e0b214478f64630574549074caac277298f7e3a45f2b3c235f7cdb8f8d68c",
+      "tests/recovery.rs": "d3fc556915f64f45db70ed678ad7b10be4ce2d2676108dca3413aefb22ab4acd",
+      "probes/Cargo.lock": "dcecfe2732b0f5e8f944f16db3563d6e1c27f808558c431c5036b98dcc27bff8",
+      "probes/src/bin/external.rs": "8e2c6ac9b2af69ffec7f2e0484ce466dacd1e62eb7a0e80c93656664ac659d01",
+      "probes/src/bin/owned.rs": "343db827c6a833ba18ef128d8f76021a2329eaf43e6145d9c6449b892cd353f1"
+    }
+  }
+}

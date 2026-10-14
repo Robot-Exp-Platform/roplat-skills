@@ -1,0 +1,62 @@
+{
+  "date": "2026-10-13",
+  "status": "passed-against-development-worktrees",
+  "contract": {
+    "roplat": "0.5.0",
+    "robot_behavior": "0.8.0",
+    "resources": "dedicated mutable borrow tuple outside business Input/Output"
+  },
+  "toolchain": "rustc 1.100.0-nightly (67eda617e 2026-09-10)",
+  "platform": "Darwin arm64",
+  "source_base_revisions": {
+    "core": {
+      "commit": "1a4214906fbbc2159ec1147a2dcd069dd811630a",
+      "dirty": true
+    },
+    "drives": {
+      "commit": "103f3a61f138f963a6fd83ffc8ca97072c5a9062",
+      "dirty": true
+    }
+  },
+  "command": "BULLET_SKIP_ASSET_EXPORT=1 ROPLAT_SKIP_ASSET_EXPORT=1 CARGO_NET_GIT_FETCH_WITH_CLI=true python3 skills/roplat-development/scripts/verify_examples.py --roplat <roplat> --drives <drives> --offline",
+  "results": [
+    {
+      "example": "control_layers",
+      "step": "run",
+      "locked": true,
+      "returncode": 0
+    },
+    {
+      "example": "control_layers",
+      "step": "clippy",
+      "locked": true,
+      "returncode": 0
+    },
+    {
+      "example": "robot_apps",
+      "step": "run",
+      "locked": true,
+      "returncode": 0
+    },
+    {
+      "example": "robot_apps",
+      "step": "clippy",
+      "locked": true,
+      "returncode": 0
+    }
+  ],
+  "skill_schema_validation": {
+    "roplat-development": "passed",
+    "robot-behavior": "passed",
+    "validator": "skill-creator/scripts/quick_validate.py"
+  },
+  "lockfile_changes": "Updated local packages to roplat 0.5.0 / robot_behavior 0.8.0; explicitly selected Tokio 1.48.0. robot_apps lock regenerated against available local registry index because prior either 1.19.0 and other locked revisions were absent. Script still requires --locked.",
+  "warnings": [
+    "Dependency robot_behavior reports generic_const_exprs / next-generation trait-solver fallback warning on this nightly. Example strict Clippy completed successfully."
+  ],
+  "limits": [
+    "Development worktree verification; base revisions are not final implementation commits. Final revision linkage is recorded separately after commits.",
+    "Finite mock and local System assertions only; no hardware, performance or cross-platform validation.",
+    "Historical evaluation code and results retain their original APIs and commits."
+  ]
+}

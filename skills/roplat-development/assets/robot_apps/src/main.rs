@@ -38,11 +38,17 @@ async fn main() -> RoplatResult<()> {
 
     let arm = sequence_motion::visit(arm, waypoints.clone()).await?;
     assert_near(arm.joints(), HOME);
-    assert!(arm.is_connected(), "a System leaves an arm it did not create connected");
+    assert!(
+        arm.is_connected(),
+        "a System leaves an arm it did not create connected"
+    );
 
     let (joints, connected) = sequence_owned::visit(waypoints).await?;
     assert_near(joints, HOME);
-    assert!(connected, "the creating System connects the arm before its tasks");
+    assert!(
+        connected,
+        "the creating System connects the arm before its tasks"
+    );
 
     let offset = [0.0, 0.0, 0.0, 0.0, 0.0, 0.2];
     let mut follower = SimArm::new(std::array::from_fn(|i| HOME[i] + offset[i]));
@@ -50,7 +56,10 @@ async fn main() -> RoplatResult<()> {
     let (mut leader, mut follower) =
         dual_arm::leader_follower(arm, follower, grasp, offset).await?;
     assert_near(leader.joints(), grasp);
-    assert_near(follower.joints(), std::array::from_fn(|i| grasp[i] + offset[i]));
+    assert_near(
+        follower.joints(),
+        std::array::from_fn(|i| grasp[i] + offset[i]),
+    );
     leader.on_shutdown().await?;
     follower.on_shutdown().await?;
 

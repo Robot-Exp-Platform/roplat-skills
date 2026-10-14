@@ -17,8 +17,9 @@ Node::process 返回用户自己的 Output；如果 Output=Result<数据,业务�
 ## 正式 Rhythm 契约
 
 ```rust
-fn drive<N, F, Fut>(
-    &mut self, nodes: N, op_domain: F, input: Self::Input,
+fn drive<'call, N, F, Fut>(
+    &'call mut self, nodes: N, op_domain: F, input: Self::Input,
+    resources: <Self::Resources as ResourceSet>::Refs<'call>,
     context: ExecutionContext,
 ) -> impl Future<Output = (Execution<Self::Output>, N)> + Send
 where
@@ -29,7 +30,30 @@ where
 
 每轮先检查停止，调用op_domain并完整await，**先取回N再处理Execution**。失败/停止请求给定context停止，然后带N返回。不能对拥有N的周期Future使用会丢弃失败分支的try_join或超时取消；设备等待可以设计为可取消，但需要确保它没有丢失在途节点所有权。完整实现参见技能例程FoldRhythm。
 
-N不包含drive Input时，框架并不承诺失败后归还Input内的资源。Rhythm本体通过&mut self借用，与N不同。
+资源通过独立 Resources 参数借用；调用失败或停止不需要业务 Output 来交还它。N 仍是宏规划的不透明拥有状态，节律不能假设其布局。设备会话收尾仍由驱动负责。
+
+## 资源使用者的实现形状
+
+```rust
+impl Node for MovePair {
+    type Resources = (Arm, Arm);
+    type Input = (Goal, Goal);
+    type Output = Result<(), MotionError>;
+    async fn process<'call>(
+        &'call mut self,
+        (left_goal, right_goal): Self::Input,
+        (left, right): (&'call mut Arm, &'call mut Arm),
+    ) -> Self::Output {
+        left.move_to(left_goal)?;
+        right.move_to(right_goal)?;
+        Ok(())
+    }
+}
+```
+
+这是接口形状，Arm/Goal/MotionError 取用户真实类型；图中两条资源边分别接 `pair.resources.0/1`，业务目标接 `pair.input.0/1`。即使右臂运动失败，两臂本体仍由调用方持有；之前发出的左臂指令不会回滚。资源类型可以不同，也可以相同。不要通过 `Option<Arm>` 回收、复制或持有 `'static` 引用实现此接口。允许对传入的 `&mut Arm` 替换本体。
+
+Rhythm 使用相同的资源声明和生命周期参数，但借用持续到整次 drive 完成；应在返回前完成会话退出与 N 恢复。内部永久拥有设备的节律保留内部字段，并声明 `Resources = ()`。
 
 ## 创建层负责hooks
 
@@ -38,9 +62,10 @@ N不包含drive Input时，框架并不承诺失败后归还Input内的资源。
 ```rust
 impl Lifecycle for Worker { type Error = RoplatError; }
 impl Node for Worker {
+    type Resources = ();
     type Input = i64;
     type Output = i64;
-    async fn process(&mut self, input: i64) -> i64 { input + 1 }
+    async fn process(&mut self, input: i64, _: ()) -> i64 { input + 1 }
 }
 ```
 

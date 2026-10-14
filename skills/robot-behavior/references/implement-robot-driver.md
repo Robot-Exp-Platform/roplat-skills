@@ -42,6 +42,8 @@ use robot_behavior::driver::*;
 
 This imports user-facing behavior traits plus implementation traits: `MoveTo`, `MoveTraj`, and `ControlWith`.
 
+`RobotResult` and `RobotException` are root exports, not included in these glob imports. Import the ones your implementation uses explicitly with `use robot_behavior::{RobotException, RobotResult};`.
+
 ## Implementation Order
 
 Implement in this order:
@@ -305,21 +307,20 @@ Promote to a shared trait only after multiple drivers need the same behavior and
 
 ## Roplat
 
-The `roplat` feature is off by default. Keep device capabilities usable without it. Generic adapters in `robot_behavior::roplat::*` include:
+The `roplat` feature is off by default. Keep device capabilities usable without it. The generic adapters use a separate resource channel:
 
-- `MotionNode<R, S>` for one blocking `MoveTo<S>`: `Input = (R, S::Target)`, `Output = (R, RobotResult<()>)`; the robot returns on success and failure.
-- `SpaceMapNode<M, From, To>` for model maps.
-- `SafetyNode<F, Command>` for command-frame filters, without an automatic hardware safety claim.
-- `ControlRhythm<R, S>` / `AsyncControlRhythm<R, S>`: `Input = R`, `Output = R`, `Yield = (S::Obs, Duration)`, business `Feed = (S::Command, bool)`; a drive that does not complete keeps the robot and returns it from `reclaim_input`.
-- `impl From<RobotException> for RoplatError` (I/O error source) so graphs can write `motion.1?;`.
+- `MotionNode<R, S>`: `Resources = (R,)`, `Input = S::Target`, `Output = RobotResult<()>`.
+- `SpaceMapNode<M, From, To>` and `SafetyNode<F, Command>` have no external resources (`Resources = ()`).
+- `ControlRhythm<R, S>` / `AsyncControlRhythm<R, S>`: `Resources = (R,)`, `Input = ()`, `Output = ()`, `Yield = (S::Obs, Duration)`, business `Feed = (S::Command, bool)`.
+- `RobotException` converts into `RoplatError`, allowing `motion?` in a graph.
 
-`drive` returns `(Execution<R>, N)`. Every cooperative exit must return `N`; await an in-flight domain to recover it. A stopped or failed domain becomes `ControlFlow::Break(())`, so device termination runs without an invented algorithm command. Keep domain and termination errors if both occur.
+`drive` returns `(Execution<()>, N)`. Every cooperative exit returns N after awaiting the in-flight domain. A stopped or failed domain becomes `ControlFlow::Break(())`, so device termination runs without an invented algorithm command. Preserve domain and termination errors if both occur.
 
-A rhythm that takes a resource body as Input should hold it during the drive and implement `Rhythm::reclaim_input` so the System can put the body back when the drive stops or fails; the default returns `None`. A node that uses a lent body returns it in its Output on every result (put the business result beside it). The core guarantees a lent body is unique, not that it always returns: a stop that arrives while the body waits on a compiler-inserted graph channel drops it, and that path is then invalid; the creating layer skips `on_shutdown` for the empty slot. Handle loss in the robot type's own `Drop` (leave the device safe, end the session) and let the application recreate the object. Device session cleanup and final object lifecycle are different operations; for a robot to be created inside a System, implement `roplat::Lifecycle` as connect/disconnect.
+Node and Rhythm implementers select a resource type tuple; core `ResourceSet` supplies mutable references whose lifetime covers only that process/drive call. Declare `(R,)` and receive `(robot,): (&'call mut R,)`; multiple resources use `(R, Camera)` and `(&'call mut R, &'call mut Camera)`. Business Input/Output stay separate. Do not add a recovery hook, a held `Option<R>`, or a resource return Output. Rust permits replacing the borrowed body; this contract does not enforce identity preservation. A rhythm that already owns a device internally can keep that design with `Resources = ()`. Device session cleanup and final object lifecycle remain distinct.
 
 The creating scope owns Node/Rhythm/resource initialization and shutdown. Child domains only use passed objects, and repeated drives do not reset state. Keep normal-path overhead bounded and avoid allocation introduced solely to aggregate future errors.
 
-Application examples should use `#[roplat::system]` with child domains, lending the robot with `&mut robot`; see the sibling [roplat-development](../../roplat-development/SKILL.md) skill. Writing driver internals is legitimate; rewriting the application as a manual `.process()` chain to bypass the graph is not an adaptation strategy.
+Application examples should use `#[roplat::system]` with child domains, borrowing the robot with `&mut robot >> user.resources.0`; see the sibling [roplat-development](../../roplat-development/SKILL.md) skill. Writing driver internals is legitimate; rewriting the application as a manual `.process()` chain to bypass the graph is not an adaptation strategy.
 
 Simulator-level rhythms and sample-validity redesign are separate changes requiring explicit design alignment.
 

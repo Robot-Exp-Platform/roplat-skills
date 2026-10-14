@@ -29,6 +29,8 @@ use robot_behavior::behavior::*;
 
 Only import concrete driver types for connection and vendor-native APIs. Avoid `robot_behavior::driver::*` in application examples; it is for implementors and can create method ambiguity.
 
+`RobotResult` and `RobotException` are root exports, not included in these glob imports. Import the ones your implementation uses explicitly with `use robot_behavior::{RobotException, RobotResult};`.
+
 ## Lifecycle Pattern
 
 Use `Robot` methods directly:
@@ -238,28 +240,25 @@ Do not require model traits in an application if the task can be written with li
 
 Enable `robot_behavior`'s `roplat` feature explicitly; it is off by default. Organize applications with `#[roplat::system]` and child rhythm domains, following [roplat-development](../../roplat-development/SKILL.md). Do not replace an application graph with a hand-written chain of `.process()` calls to bypass macro or ownership errors.
 
-The robot is a **resource** (robot_behavior 0.7 / roplat 0.4): the graph lends it with `&mut robot` and gets it back from the user's Output.
+The robot uses a dedicated borrowed **resource channel** (robot_behavior 0.8 / roplat 0.5):
 
 ```rust
-&mut robot >> control >> |(state, dt)| { /* algorithm nodes */ servo };
-control >> &mut robot;               // the drive Output returns the robot
-&mut robot >> motion.input.0;
-goal >> motion.input.1;
-motion.0 >> &mut robot;              // returned whatever the motion result
-motion.1?;                           // checked after the robot is home
+&mut robot >> motion.resources.0;
+goal >> motion; motion?;
+&mut robot >> control.resources.0;
+control >> |(state, dt)| { /* algorithm nodes */ servo };
+control.outcome >> record;
 ```
 
 Generic adapters:
 
-- `MotionNode<R, S>` consumes `(R, S::Target)` and returns `(R, RobotResult<()>)`; the robot comes back on success and failure.
-- `SpaceMapNode<M, From, To>` wraps a model map.
+- `MotionNode<R, S>`: `Resources = (R,)`, `Input = S::Target`, `Output = RobotResult<()>`.
+- `SpaceMapNode<M, From, To>` wraps a model map; `Resources = ()`.
 - `SafetyNode<F, Command>` transforms `(Command, bool)`; its name alone does not establish a hardware safety mechanism.
-- `ControlRhythm<R, S>` (blocking session) and `AsyncControlRhythm<R, S>` (native async session): `Input = R`, `Yield = (S::Obs, Duration)`, business `Feed = (S::Command, bool)`, `Output = R`. When a drive does not complete they keep the robot and return it through `Rhythm::reclaim_input`; the generated graph puts it back in its slot.
-- `RobotException` converts into `RoplatError` (I/O error source), so `motion.1?;` raises a device failure.
+- `ControlRhythm<R, S>` (blocking session) and `AsyncControlRhythm<R, S>` (native async session): `Resources = (R,)`, `Input = ()`, `Output = ()`, `Yield = (S::Obs, Duration)`, business `Feed = (S::Command, bool)`. They borrow the robot for the whole drive.
+- `RobotException` converts into `RoplatError`, so `motion?` raises a device failure.
 
-The framework result is separate: `Execution<R>` represents completed output, stopped execution or failure. Completed domain feed maps to `Continue((command, done))`; stopped/failed domains map to `Break(())`. Preserve a domain error and a device-session termination error if both occur.
-
-Every cooperative exit returns the opaque node tuple `N`, which must be recovered by awaiting the in-flight domain. A lent robot comes back through Output or `reclaim_input`. The macro rejects a `?` that could leave the graph after the lend and skip the return (e.g. the return waits for `motion.1? >> verdict`), so return first and check with the standalone `motion.1?;`. To continue after a failed session, isolate the segment in a `roplat::rhythm::once()` child domain (created once in the head; it runs one cycle per drive) and handle its `.outcome`. Device session termination is separate from final resource shutdown. A stop that arrives while the lent robot waits on a compiler-inserted graph channel can drop it; that path is invalid and the robot is recreated, with any pre-loss handling done by the driver's `Drop`. Lending it again fails that domain with `RoplatError::Resource` (isolate with a `once()` child domain's `.outcome`).
+`Execution<()>` represents completed output, stopped execution or failure. Completed domain Feed maps to `Continue((command, done))`; stopped/failed domains map to `Break(())`. Preserve both a domain error and a device-session termination error if they occur together. Every cooperative exit returns the opaque node tuple `N`, after awaiting the in-flight domain. The robot remains owned outside business Input/Output; no `ResourceSlot`, return edge or `reclaim_input` is required. Handle `control.outcome` directly to continue after a failed drive, or use `once()` to isolate a group of nodes. Resource availability and device session termination are separate concerns.
 
 Node/Rhythm/robot lifecycle belongs to the creating layer. A robot created with `let mut robot = ...` inside the System is enabled and closed by that System, so its type needs a `roplat::Lifecycle` impl (connect/disconnect); a robot passed in as a parameter is managed by the caller. A child domain uses external objects without reinitializing or closing them; repeated drives preserve state. `Robot` lifecycle methods are not automatically equivalent to `Lifecycle` hooks. Panic, dropping the outer Future and forced abort are outside cooperative-return guarantees.
 
