@@ -45,10 +45,10 @@ control.outcome >> record;      // Execution<()>，可直接处理本次会话�
 
 - Node/Rhythm 声明 `Resources = ()`、`(Arm,)` 或 `(Arm, Camera)`。核心 `ResourceSet` 提供相应的 `()`、`(&mut Arm,)`、`(&mut Arm, &mut Camera)`，借用生命周期与 `process`/完整 `drive` 相同。不是 `&mut (Arm, Camera)`，也不能把映射改为按值资源。
 - 多资源分别连接 `.resources.0`、`.resources.1`；编号连续且不重复，同一调用不能两次独占借用同一本体。目前支持最多 16 个扁平槽。单资源也必须写 `.resources.0`。
-- 当前无法规约的复杂共享资源 DAG 会明确报 `resource dependencies cannot be separated into parallel execution units`；共享资源也不能跨 `#[hard]` 单元。相关使用放在同一域，通用支持留待后续设计，不自行加锁或串行整个图。
-- 相同条件的重复 match 会合并为一次图调用；若在两次 match 之间插入同一资源的另一次使用，会破坏绑定顺序并得到明确诊断。把相关使用放入同一个域，或用独立命名的 match 表达不同调用。
+- 当前无法规约的复杂共享资源 DAG 会明确报 `unsupported resource dependency shape`；共享资源也不能跨 `#[hard]` 单元。相关使用放在同一域，通用支持留待后续设计，不自行加锁或串行整个图。
+- 相同条件的重复 match 会合并为一次图调用；在两次 match 之间插入同一资源的另一次使用，0.5.0 报绑定顺序诊断，资源顺序修订后须与合并后的 match 建立依赖。两种情况下都应把相关使用放入同一个域，或用独立命名的 match 表达不同调用。
 - 资源留在拥有状态里，业务 Input/Output 不携带它。删除的 `ResourceSlot`、`reclaim_input` 和 `user >> &mut arm` 不应出现在新程序中。
-- 同一资源的使用按资源绑定在源码中的出现顺序串行；独立资源按图依赖并发。业务错误 `motion?` 与资源借用无关，不需要“归还后再检查”。借用允许正常 Rust 本体替换，不承诺对象身份不变。
+- 同一资源的任意两个使用之间写出数据或 `.trigger` 依赖（如 `reach >> settle.trigger;`）。0.5.0 仍按绑定书写顺序串行；资源顺序修订后只按依赖排序，无依赖的两个使用编译报错，节律结果用 `.outcome` 处理时写 `child.outcome >> next.trigger;`。独立资源按图依赖并发。业务错误 `motion?` 与资源借用无关，不需要“归还后再检查”。借用允许正常 Rust 本体替换，不承诺对象身份不变。
 - 本层创建的资源由本层 Lifecycle 启停；参数由调用方管理。内层域可借用外层资源；尾段可调用资源方法。外部按值传入、由调用方管理的资源可 `Ok(arm)` 返回；本层创建并由 Lifecycle 管理的资源需留下执行关闭钩子，尾段返回业务状态快照，不能提前移走本体。节律持有资源期间，其周期域不能同时使用同一资源。
 - Rhythm 的 `.outcome` 可直接隔离该 drive 的失败。要把一组节点作为一段隔离，可用 `once()` 子域；每次 drive 都运行一次，不能用会耗尽的 `(0..1).into_rhythm()` 替代。
 - 逐段收集业务结果可用 `into_collect_rhythm()`，其 Output 是本次各周期 Feed 的 `Vec`。仅在后续任务独立于失败段时继续。

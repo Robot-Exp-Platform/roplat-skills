@@ -246,9 +246,12 @@ The robot uses a dedicated borrowed **resource channel** (robot_behavior 0.8 / r
 &mut robot >> motion.resources.0;
 goal >> motion; motion?;
 &mut robot >> control.resources.0;
+motion >> control.trigger;   // two uses of one resource need a dependency
 control >> |(state, dt)| { /* algorithm nodes */ servo };
 control.outcome >> record;
 ```
+
+Write a data or `.trigger` dependency between any two uses of the same resource. roplat 0.5.0 also accepts binding order alone, but the pending resource-order revision orders uses only by dependencies and rejects two uses without one; the explicit dependency is valid under both.
 
 Generic adapters:
 
