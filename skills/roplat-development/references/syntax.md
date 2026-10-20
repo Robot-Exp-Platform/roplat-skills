@@ -45,7 +45,7 @@ control.outcome >> record;      // Execution<()>，可直接处理本次会话�
 
 - Node/Rhythm 声明 `Resources = ()`、`(Arm,)` 或 `(Arm, Camera)`。核心 `ResourceSet` 提供相应的 `()`、`(&mut Arm,)`、`(&mut Arm, &mut Camera)`，借用生命周期与 `process`/完整 `drive` 相同。不是 `&mut (Arm, Camera)`，也不能把映射改为按值资源。
 - 多资源分别连接 `.resources.0`、`.resources.1`；编号连续且不重复，同一调用不能两次独占借用同一本体。目前支持最多 16 个扁平槽。单资源也必须写 `.resources.0`。
-- 当前无法规约的复杂共享资源 DAG 会明确报 `unsupported resource dependency shape`；共享资源也不能跨 `#[hard]` 单元。相关使用放在同一域，通用支持留待后续设计，不自行加锁或串行整个图。
+- 0.5.0 中无法规约的复杂共享资源 DAG 会明确报 `unsupported resource dependency shape`，`#[hard]` 单元也不能共享资源；之后的 main 由补边与同 join 借用移交处理交叉形状，该诊断只作防御，绑定上的 `#[hard]` 已改为 hard 节律（见下节）。不自行加锁或串行整个图。
 - 相同条件的重复 match 会合并为一次图调用；在两次 match 之间插入同一资源的另一次使用，0.5.0 报绑定顺序诊断，资源顺序修订后须与合并后的 match 建立依赖。两种情况下都应把相关使用放入同一个域，或用独立命名的 match 表达不同调用。
 - 资源留在拥有状态里，业务 Input/Output 不携带它。删除的 `ResourceSlot`、`reclaim_input` 和 `user >> &mut arm` 不应出现在新程序中。
 - 同一资源的任意两个使用之间写出数据或 `.trigger` 依赖（如 `reach >> settle.trigger;`）。0.5.0 仍按绑定书写顺序串行；资源顺序修订后只按依赖排序，无依赖的两个使用编译报错，节律结果用 `.outcome` 处理时写 `child.outcome >> next.trigger;`。独立资源按图依赖并发。业务错误 `motion?` 与资源借用无关，不需要“归还后再检查”。借用允许正常 Rust 本体替换，不承诺对象身份不变。
@@ -53,6 +53,24 @@ control.outcome >> record;      // Execution<()>，可直接处理本次会话�
 - Rhythm 的 `.outcome` 可直接隔离该 drive 的失败。要把一组节点作为一段隔离，可用 `once()` 子域；每次 drive 都运行一次，不能用会耗尽的 `(0..1).into_rhythm()` 替代。
 - 逐段收集业务结果可用 `into_collect_rhythm()`，其 Output 是本次各周期 Feed 的 `Vec`。仅在后续任务独立于失败段时继续。
 - Node 业务错误用业务错误类型加 `Into<RoplatError>`，或 `RoplatError::NodeProcessing(..)`；设备 `RobotException` 已有转换。
+
+## 重计算与实时回路：hard 节律（2026-10-20 放置层修订后的 main）
+
+```rust
+let mut infer = roplat::rhythm::once::<Frame, Detections>().hard();
+camera >> |frame| {
+    frame >> infer >> move |frame| { frame >> detector; detector };
+    infer.output >> tracker;
+};
+let mut control = ControlRhythm::new().hard();
+&mut robot >> control.resources.0;
+control >> move |(obs, dt)| { obs >> law; law };
+```
+
+- `rhythm.hard()`（`roplat::rhythm::IntoHard`）让每次 drive 在该节律自己的线程与运行时上执行：不阻塞同任务兄弟和其他域，也不被别处的同步代码拖慢。用于规划、推理、长时间的外语调用和需要隔离的控制回路；每次进入约多几微秒，不用于轻节点。
+- hard 节律只能由拥有型域 `move |…| { … }` 进入：域内节点以本体传入，节律借用的资源也以本体移入，drive 结束随结果交回，之后的使用者看到修改。被移动的对象须 `Send + 'static`；对象只以引用到达时编译报错。写成 `|…| { … }` 时，编译错误指向该域并提示 `move`。
+- 下游照常等待 hard 域的结果。可能超出周期时限、只需最新结果的计算放进自己的节律，经 `Latest` 旁路交付，不放进周期图。
+- 生命周期仍归创建层：线程在第一次 drive 时启动，由 `on_shutdown` 关闭并等待。旧写法 `#[hard] let mut node = ...;` 会得到改写提示。
 
 ## Rust 与 DSL 分区
 
@@ -77,4 +95,4 @@ match chooser.output {
 
 `#[roplat::system(file = "architecture.yaml", context = context)]` 使用文件前端和共享停止域；文件路径相对用户crate，YAML能力小于Rust DSL，不能据Rust三层例程推断YAML支持同等嵌套。未知属性被候选宏拒绝，`stop_check` 是已撤回试验，不可使用。
 
-`system_item!` 用于已有async上下文内联块，失败/停止按普通值边界处理并可能panic；需要清楚的Execution边界时优先具名 `#[system]` 函数。spawn必须满足Send/'static；普通分支优先让System自动同任务join，不为获得并发随意加spawn。高级spawn具体写法查该版本核心文档，不能把 `#[spawn]` 臆造为合法任意语句属性。
+`system_item!` 用于已有async上下文内联块，失败/停止按普通值边界处理并可能panic；需要清楚的Execution边界时优先具名 `#[system]` 函数。spawn必须满足Send/'static；普通分支优先让System自动同任务join，不为获得并发随意加spawn。放置层修订后的 main 只在根作用域 spawn，节律周期与 match 内一律 join；要隔离重计算或实时回路，用上节的 hard 节律，不寻找 spawn 写法。高级spawn具体写法查该版本核心文档，不能把 `#[spawn]` 臆造为合法任意语句属性。
