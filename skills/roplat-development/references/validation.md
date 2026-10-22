@@ -21,6 +21,7 @@ python3 <skill目录>/scripts/verify_examples.py --roplat <核心仓库> --drive
 | 现象 | 首先检查 |
 |---|---|
 | node只有一个名字却期望调用多次 | 同层一个调度位置；重复由Rhythm产生，或定义不同实例 |
+| `... is called both in ... and in ...` / `reading ... .output in this tail would call it a second time` | 同一实例在外层与内层（或两个都会运行的域）各调用了一次；改读域的 `.output`，或建两个实例；资源在调用所在的作用域绑定 |
 | child后面的节点不运行 | child当前drive是否真的结束，是否无限Rhythm；Output不能早于drive返回 |
 | Feed类型不匹配 | 周期尾表达式是否误加分号；child Output和child每轮Feed是否混淆 |
 | 外部节点没初始化 | System参数只使用，创建层必须管理hooks |

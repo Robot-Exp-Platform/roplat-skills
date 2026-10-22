@@ -71,6 +71,8 @@ control >> move |(obs, dt)| { obs >> law; law };
 - hard 节律只能由拥有型域 `move |…| { … }` 进入：域内节点以本体传入，节律借用的资源也以本体移入，drive 结束随结果交回，之后的使用者看到修改。被移动的对象须 `Send + 'static`；对象只以引用到达时编译报错。写成 `|…| { … }` 时，编译错误指向该域并提示 `move`。
 - 下游照常等待 hard 域的结果。可能超出周期时限、只需最新结果的计算放进自己的节律，经 `Latest` 旁路交付，不放进周期图。
 - 生命周期仍归创建层：线程在第一次 drive 时启动，由 `on_shutdown` 关闭并等待。旧写法 `#[hard] let mut node = ...;` 会得到改写提示。
+- 调用方 future 被丢弃（`timeout`、`select!`）不会停下线程：该次 drive 被放弃并收到停止请求，其结果与对象在 hard 线程丢弃，下一次 drive 只返回自己的结果。线程 panic 后该节律不可再用，后续 drive 立即返回框架错误。
+- 节点里向其他域发事件：`EventTrigger::try_fire`（不等待，任何上下文）或 `fire_async().await`；`fire_blocking` 只用于 tokio 运行时之外的线程。只需通知“发生过”时用 `roplat::rhythm::create_signal()`，多次触发会合并为一个周期。
 
 ## Rust 与 DSL 分区
 
