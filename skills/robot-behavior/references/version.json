@@ -1,34 +1,10 @@
 {
-  "robot_behavior_repository": "https://github.com/Robot-Exp-Platform/robot_behavior",
   "robot_behavior_version": "0.8.0",
-  "robot_behavior_ref": "main",
-  "robot_behavior_commit": "8694e5b6dfa81c97136d9e01f36445131c9b06d1",
-  "registry": "crates.io robot_behavior 0.8.0 (packaged from robot_behavior_commit; requires a nightly toolchain)",
   "roplat_version": "0.5.0",
-  "roplat_commit": "8ca570d3f8be7eef269ab315c7b2a579310454a3",
+  "registry": "crates.io",
+  "toolchain": "nightly (robot_behavior uses async_trait_bounds and generic_const_exprs)",
   "status": "published-release-validated",
   "scope": "Resources=(R,) supplies a mutable robot borrow; MotionNode business Input is a target and Output is RobotResult<()>, control rhythms use unit Input/Output. Finite simulated examples do not validate hardware.",
-  "validation_evidence": "evaluations/results/20261022/v0.5.0-release-validation.json",
-  "pre_release_verification": {
-    "robot_behavior_ref": "codex/resource-borrow-channel",
-    "robot_behavior_commit": "1f6bf80e6fa18cfb331ea5c18db790cc85ef8e8d",
-    "roplat_commit": "d6484b1c595b7d69e8727dc04d471f4bbf57def4",
-    "status": "validated-final-commits-not-public-release",
-    "validation_evidence": "evaluations/results/20261013/resource-borrow-final-validation.json",
-    "independent_validation_evidence": "evaluations/results/20261013/skills-forward-validation.json"
-  },
-  "previous_resource_lending_verification": {
-    "robot_behavior_repository": "https://github.com/Robot-Exp-Platform/robot_behavior",
-    "robot_behavior_version": "0.7.0",
-    "robot_behavior_ref": "main",
-    "robot_behavior_commit": "e6455314b67e2a749e0a0606e1f7ade8f03d7871",
-    "roplat_version": "0.4.0",
-    "origin": {
-      "repository": "https://github.com/Robot-Exp-Platform/robot_behavior-skills",
-      "commit": "32faa6f3687f33bb797a77d7af13b3b39eea664e",
-      "note": "use-robot-driver and implement-robot-driver were merged into one skill; their Roplat sections were updated to the 0.7.0 resource contract. The origin repository is marked superseded (bcf3cba)."
-    },
-    "status": "documentation-skill-not-hardware-validated",
-    "scope": "Device capability and driver contract guidance. The Roplat adapter contract (MotionNode, ControlRhythm, AsyncControlRhythm, reclaim_input) is exercised by robot_behavior's own tests and by roplat-development's robot_apps on a simulated arm; no real device was run."
-  }
+  "validation_evidence": "evaluations/results/20261022/self-contained-validation.json",
+  "provenance": "evaluations/provenance.json"
 }

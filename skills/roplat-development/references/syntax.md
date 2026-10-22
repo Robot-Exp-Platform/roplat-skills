@@ -1,6 +1,6 @@
 # 推荐的真实 System 语法
 
-完整权威参考位于核心仓库 `docs/system-syntax.md` 与 `examples/system_syntax/`。以下是可组合片段，节点名不是关键字。
+本文是 roplat 0.5 System 写法的完整参考，片段可组合，节点名不是关键字。类型与函数签名查 crate 文档（docs.rs 上的 roplat 0.5.0，或在项目里 `cargo doc --open`）；可运行的完整程序在本技能的 [assets](../assets/)。
 
 ## 入口与基本图
 
@@ -32,6 +32,8 @@ async fn run(mut source: Source, mut sink: Sink) -> roplat::RoplatResult<()> {
 
 目的端整体输入和拆分端口不能混用；拆分端口须连续、无重复。单实例在所在域的每次执行中只调用一次：`a >> b; a >> c;` 是扇出，不是调用 a 两次；不会隐式 Clone 非 Copy 输出。对需要复制/共享的数据明确设计其类型或节点输出。
 
+图中段不能写普通 Rust 运算。小的中段计算用闭包节点 `roplat::node::map(|value: f64| value * 2.0)`：它是普通节点（`Resources = ()`，生命周期钩子为空），闭包可以是 `FnMut` 并跨调用保留状态，也接受 `.input.N` 元组输入；闭包里的状态在图外读不到，需要资源、生命周期或可读状态时写具名节点类型。
+
 ## 资源：独立的 `.resources.N` 借用通道
 
 ```rust
@@ -50,11 +52,32 @@ control.outcome >> record;      // Execution<()>，可直接处理本次会话�
 - 资源留在拥有状态里，业务 Input/Output 不携带它。删除的 `ResourceSlot`、`reclaim_input` 和 `user >> &mut arm` 不应出现在新程序中。
 - 同一资源的任意两个使用之间写出数据或 `.trigger` 依赖（如 `reach >> settle.trigger;`）。使用只按依赖（含传递）排序，与绑定书写顺序无关；无依赖的两个使用编译报错，节律结果用 `.outcome` 处理时写 `child.outcome >> next.trigger;`。独立资源按图依赖并发。业务错误 `motion?` 与资源借用无关，不需要“归还后再检查”。借用允许正常 Rust 本体替换，不承诺对象身份不变。
 - 本层创建的资源由本层 Lifecycle 启停；参数由调用方管理。内层域可借用外层资源；尾段可调用资源方法。外部按值传入、由调用方管理的资源可 `Ok(arm)` 返回；本层创建并由 Lifecycle 管理的资源需留下执行关闭钩子，尾段返回业务状态快照，不能提前移走本体。节律持有资源期间，其周期域不能同时使用同一资源。
-- Rhythm 的 `.outcome` 可直接隔离该 drive 的失败。要把一组节点作为一段隔离，可用 `once()` 子域；每次 drive 都运行一次，不能用会耗尽的 `(0..1).into_rhythm()` 替代。
-- 逐段收集业务结果可用 `into_collect_rhythm()`，其 Output 是本次各周期 Feed 的 `Vec`。仅在后续任务独立于失败段时继续。
+- Rhythm 的 `.outcome` 可直接隔离该 drive 的失败；要把一组节点作为一段隔离，用 `once()` 子域，逐段收集业务结果用 `into_collect_rhythm()`（见内置节律）。仅在后续任务独立于失败段时继续。
 - Node 业务错误用业务错误类型加 `Into<RoplatError>`，或 `RoplatError::NodeProcessing(..)`；设备 `RobotException` 已有转换。
 
+## 内置节律
+
+| 构造 | 每周期 Yield | 一次 drive 的结束与 Output | 典型用途 |
+|---|---|---|---|
+| `iter.into_rhythm()`（`roplat::rhythm::IntoRhythm`） | 迭代器的下一项 | 迭代器耗尽；Output `()`。位置跨 drive 保留 | 航点、任务步骤 |
+| `iter.into_collect_rhythm()` | 同上 | 同上；Output 是本次各周期 Feed 的 `Vec` | 逐段收集结果 |
+| `iter.with_period(dt)`（`roplat::rhythm::WithPeriod`） | 下一项，按 `dt` 定时 | 迭代器耗尽 | 定频采样、脚本化输入 |
+| `CountRhythm::new(n)` / `create_count_rhythm(n)` | 计数 | 跑满 n 个周期 | 有限次循环 |
+| `once::<I, F>()` | Input 本身 | 运行一个周期；Output 是该周期 Feed | 把一段图包成可隔离、可 hard 的域 |
+| `retry::<I, O, E>(n)` | `(input, attempt)`，attempt 从 0 起 | 某周期 Feed 为 `Ok`，或本次 drive 用满 n 次；Output 是最后一次 Feed（`Result<O, E>`，全失败仍是业务数据，`retry.output?` 才升级为错误）。`retry.attempts()` 是累计次数 | 重试一个任务步骤 |
+| `feedback(n, finished)` | 首周期为 Input，之后为上一周期 Feed | `finished(&feed)` 成立或用满 n 个周期；Output 是最后一次 Feed | 状态机：节点读上一结果决定下一指令 |
+| `create_event_channel::<T>(cap)` → `(EventTrigger<T>, EventRhythm<T>)` | 每个事件一份 | 全部触发器 drop 且队列取空 | 操作员指令、外部请求 |
+| `create_signal()` → `(SignalTrigger, SignalRhythm)` | `()` | 全部触发器 drop 且没有待处理的触发 | 只需知道“发生过”：刷新、唤醒 |
+
+`once`、`retry`、`feedback`、事件与信号节律在周期停止或失败时结束 drive 并请求停止。`once()` 每次 drive 都运行一次，不能用会耗尽的 `(0..1).into_rhythm()` 替代。
+
+发送事件：`EventTrigger::try_fire` 不等待，任何上下文都能用，队列满或接收端已结束时把事件交回（`FireError::Full` / `Closed`）；`fire_async().await` 在异步代码里等待空位，前提是接收域能同时推进；`fire_blocking` 让线程睡眠等空位，只用于 Tokio 运行时之外的线程（UI、设备回调线程），在节点、周期或 hard 节律里调用会 panic。`SignalTrigger::fire` 不等待、不分配、不 panic；下一个周期之前的多次触发合并为一个周期，不携带数据，需要每个事件或载荷时用事件通道。
+
+触发器决定这两种节律何时结束：只要还有一个触发器存活，节律就继续等待。触发器交给同一 System 里另一个节点持有时，该节点要到 System 结束才 drop，而 System 又在等这个节律结束，于是永远不会结束。所以要么让触发器留在 System 之外（操作员线程、另一个程序部分），发送完 drop；要么用停止上下文（`#[roplat::system(context = ...)]`）结束整个 System。完整写法见 [task_events.rs](../assets/robot_apps/src/task_events.rs)。
+
 ## 重计算与实时回路：hard 节律
+
+完整范例见 [plan_hard.rs](../assets/robot_apps/src/plan_hard.rs)：规划在 hard 节律的线程上求解，机械臂控制环在同一 System 里保持 2 ms 节拍，二者经 `Latest` 交接。
 
 ```rust
 let mut infer = roplat::rhythm::once::<Frame, Detections>().hard();
@@ -72,13 +95,12 @@ control >> move |(obs, dt)| { obs >> law; law };
 - 下游照常等待 hard 域的结果。可能超出周期时限、只需最新结果的计算放进自己的节律，经 `Latest` 旁路交付，不放进周期图。
 - 生命周期仍归创建层：线程在第一次 drive 时启动，由 `on_shutdown` 关闭并等待。旧写法 `#[hard] let mut node = ...;` 会得到改写提示。
 - 调用方 future 被丢弃（`timeout`、`select!`）不会停下线程：该次 drive 被放弃并收到停止请求，其结果与对象在 hard 线程丢弃，下一次 drive 只返回自己的结果。线程 panic 后该节律不可再用，后续 drive 立即返回框架错误。
-- 节点里向其他域发事件：`EventTrigger::try_fire`（不等待，任何上下文）或 `fire_async().await`；`fire_blocking` 只用于 tokio 运行时之外的线程。只需通知“发生过”时用 `roplat::rhythm::create_signal()`，多次触发会合并为一个周期。
 
 ## Rust 与 DSL 分区
 
 同一 System/周期/match arm：普通 Rust 头段 → 连续图 → 普通 Rust 尾段。不能 `a >> b; reset(); b >> c;`。对象创建、配置放头段；状态检查与公开返回值放尾段。要返回 Rust 字段，用 `Ok(object.field)`；裸路径/字段可能按 DSL 端点解析。
 
-普通 `let n = 3; n >> sink;` 中裸名字 n 被当成节点；头段值或函数参数写成值副本 `&n >> sink;`，同一名字在一个图中只有一种角色（副本、资源或节点/节律）。`if`/`loop` 内不会递归寻找 DSL，不能用普通 Rust 控制流包裹图后假定宏会调度。
+普通 `let n = 3; n >> sink;` 中裸名字 n 被当成节点；头段值或函数参数写成值副本 `&n >> sink;`，同一名字在一个图中只有一种角色（副本、资源或节点/节律）。`loop`/`for`/`while` 不会被当作图，不能用它们包裹图来重复调度，重复由节律产生。`if` 只有在分支含图语句或条件读取 `.output` / `.outcome` 时才是图内 `if`（见条件分支），头段和尾段的普通 `if` 仍是 Rust。
 
 周期和 match 头段不允许会跳出当前归还边界的 `?`/`return`。需要失败的准备工作放 Lifecycle::on_init、上层，或当前支持的显式结果域。闭包/async内部Rust错误传播属于它们自己的真实边界。
 
@@ -89,12 +111,30 @@ match chooser.output {
     Some(value) => { value >> work; }
     None => { fallback; }
 }
+
+match command {
+    Command::Goto(target) if within_limits(&target) => {
+        target >> clear;
+        if clear.output { target >> motion; } else { target >> blocked; }
+    }
+    Command::Goto(target) => { target >> out_of_reach; }
+    Command::Dwell(time) => { time >> dwell; }
+}
+
+let speed = if urgent.output { boost } else { cruise };
+speed >> limiter;
 ```
 
-只执行选中的分支；模式绑定可作为数据源，互斥分支可以使用同一对象。命名结果汇合采用现有 `let chosen = match ...`，各分支尾值类型一致，再将 `chosen >> sink`。需要结果/错误组合时先查看核心 `system_execution.rs` 测试，不发明 `if graph` 或任意分支回跳。
+- 只执行选中的分支。被匹配表达式或 `if` 条件是直接端点（`node.output`、`.outcome`、Yield 或模式绑定）时建立图依赖；复杂表达式如 `match compute(x)` 原样作为 Rust 求值，不从中推导依赖。
+- 模式绑定可作为数据源；同一 match 的互斥分支可以使用同一节点和同一资源，资源在使用它的分支里绑定。
+- 守卫 `pattern if cond` 原样保留为 Rust，只读本分支绑定和普通值，不建立图依赖；守卫读取 `node.output` 会在宏展开时报错。条件需要节点计算（例如持有障碍物模型的碰撞检查）时，让节点输出 bool 再用图内 `if`，或输出适合匹配的值再 match。
+- 图内 `if` 是 bool 的 match：`else` 可省略，可写 `else if` 链，`if let P = e { … } else { … }` 等价于 `match e { P => …, _ => … }`。条件写成 let 链会报错，改写为 match。
+- 分支结果用 `let name = match … { … };` 或 `let name = if … { … } else { … };` 汇合，各分支尾值类型一致，再连 `name >> sink`。目前不支持 `let mut`、类型标注、解构和 let-else；先绑定整体，再用字段端口连接。
+- 分支内可用端点 `?`；跨分支 `return` 被拒绝。没有结果绑定、被匹配表达式相同的旧 match 会合并为一次调用（见资源一节），新代码优先写命名结果。
+- 完整用法见 [task_events.rs](../assets/robot_apps/src/task_events.rs)：守卫做静态限位检查，图内 `if` 用碰撞检查节点的结论。
 
 ## 文件入口与限制
 
-`#[roplat::system(file = "architecture.yaml", context = context)]` 使用文件前端和共享停止域；文件路径相对用户crate，YAML能力小于Rust DSL，不能据Rust三层例程推断YAML支持同等嵌套。未知属性被候选宏拒绝，`stop_check` 是已撤回试验，不可使用。
+`#[roplat::system(file = "architecture.yaml", context = context)]` 使用文件前端和共享停止域；文件路径相对用户crate，YAML能力小于Rust DSL，不能据Rust三层例程推断YAML支持同等嵌套。未知属性被宏拒绝；`stop_check` 不是可用属性。
 
-`system_item!` 用于已有async上下文内联块，失败/停止按普通值边界处理并可能panic；需要清楚的Execution边界时优先具名 `#[system]` 函数。spawn必须满足Send/'static；普通分支优先让System自动同任务join，不为获得并发随意加spawn。0.5.0 只在根作用域 spawn，节律周期与 match 内一律 join；要隔离重计算或实时回路，用上节的 hard 节律，不寻找 spawn 写法。高级spawn具体写法查该版本核心文档，不能把 `#[spawn]` 臆造为合法任意语句属性。
+`system_item!` 用于已有async上下文内联块，失败/停止按普通值边界处理并可能panic；需要清楚的Execution边界时优先具名 `#[system]` 函数。spawn必须满足Send/'static；普通分支优先让System自动同任务join，不为获得并发随意加spawn。0.5.0 只在根作用域 spawn，节律周期与 match 内一律 join；要隔离重计算或实时回路，用上文的 hard 节律，不寻找 spawn 写法；`#[spawn]` 不是语句属性。
