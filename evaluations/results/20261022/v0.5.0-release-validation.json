@@ -1,0 +1,84 @@
+{
+  "date": "2026-10-22",
+  "status": "passed-against-published-core-and-behavior-sources",
+  "sources": {
+    "core": {
+      "core_ref": "v0.5.0",
+      "core_commit": "8ca570d3f8be7eef269ab315c7b2a579310454a3",
+      "registry": "crates.io roplat 0.5.0; its .cargo_vcs_info.json records this commit",
+      "verified_source_digest": "e19d717333250081aca2a920edca0dc384c30ee14b387aae58754884881c99bc",
+      "digest_scope": [
+        "roplat",
+        "roplat_system",
+        "roplat_macros",
+        "roplat_launch"
+      ],
+      "digest_file_selection": "git-tracked Rust sources (*.rs) and Cargo.toml files under digest_scope, hashed from committed blob content (independent of checkout line endings)",
+      "digest_algorithm": "SHA256 of json.dumps(relative_path_to_file_sha256, sort_keys=True)",
+      "digest_check": "The same procedure reproduces e5bcc23a... for the 2026-10-13 commit d6484b1.",
+      "file_count": 152,
+      "version": "0.5.0",
+      "dirty": false
+    },
+    "robot_behavior": {
+      "commit": "8694e5b6dfa81c97136d9e01f36445131c9b06d1",
+      "registry": "crates.io robot_behavior 0.8.0; its .cargo_vcs_info.json records this commit",
+      "version": "0.8.0",
+      "dirty": false
+    }
+  },
+  "drives_aggregate_commit": "4e097e624e06107cb53094a7968992a3cb7a0569",
+  "provenance_note": "Templates compile the local core and robot_behavior checkouts at these commits; robot_apps patches robot_behavior's Git pin of roplat (d6484b1) to the local core. The drives aggregate revision is linkage only: its libk1 and robot_behavior gitlinks differ from the checkouts, and the drives dependency sync is pending.",
+  "toolchain": "rustc 1.100.0-nightly (67eda617e 2026-09-10)",
+  "platform": "Darwin arm64",
+  "command": "BULLET_SKIP_ASSET_EXPORT=1 ROPLAT_SKIP_ASSET_EXPORT=1 python3 skills/roplat-development/scripts/verify_examples.py --roplat <roplat> --drives <drives> --offline",
+  "asset_checks": [
+    {
+      "example": "control_layers",
+      "step": "run",
+      "locked": true,
+      "offline": true,
+      "returncode": 0
+    },
+    {
+      "example": "control_layers",
+      "step": "clippy",
+      "locked": true,
+      "offline": true,
+      "returncode": 0
+    },
+    {
+      "example": "robot_apps",
+      "step": "run",
+      "locked": true,
+      "offline": true,
+      "returncode": 0
+    },
+    {
+      "example": "robot_apps",
+      "step": "clippy",
+      "locked": true,
+      "offline": true,
+      "returncode": 0
+    }
+  ],
+  "source_artifacts": {
+    "asset_digest": "3e77de8c5f6fcf542e059e60b6d0a7c3c408dad98ed04726fbbd633144c69bb9",
+    "algorithm": "SHA256 of json.dumps(relative_path_to_file_sha256, sort_keys=True), raw asset file contents",
+    "file_count": 12,
+    "note": "Identical to the 2026-10-13 asset digest: examples and lockfiles were not changed for this release."
+  },
+  "skill_schema_validation": {
+    "roplat-development": "passed",
+    "robot-behavior": "passed",
+    "validator": "skill-creator/scripts/quick_validate.py"
+  },
+  "warnings": [
+    "robot_behavior retains a manifest manual_readme warning and the nightly generic_const_exprs trait-solver fallback warning; strict Clippy on the examples succeeded."
+  ],
+  "limits": [
+    "Finite mock/localhost Rust examples only; no hardware, performance, GUI, foreign-language or cross-platform claim.",
+    "The examples do not use hard rhythms, move domains, EventTrigger or create_signal; the skill text on those 0.5 rules is checked against the core sources and docs, and their behavior is covered by the core test suite, not by these examples.",
+    "No new independent or forward evaluation was run; the 2026-10-13 forward evaluation remains tied to its pre-release commit."
+  ]
+}

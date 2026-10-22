@@ -251,7 +251,7 @@ control >> |(state, dt)| { /* algorithm nodes */ servo };
 control.outcome >> record;
 ```
 
-Write a data or `.trigger` dependency between any two uses of the same resource. roplat 0.5.0 also accepts binding order alone, but the pending resource-order revision orders uses only by dependencies and rejects two uses without one; the explicit dependency is valid under both.
+Write a data or `.trigger` dependency between any two uses of the same resource. roplat orders uses only by data and `.trigger` dependencies (including transitive ones), never by binding order, and rejects two uses without one.
 
 Generic adapters:
 

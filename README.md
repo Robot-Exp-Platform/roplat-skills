@@ -7,7 +7,7 @@
 | roplat-development | 用 Node / Rhythm / System 编写和修改 roplat 应用，重点教授设计哲学到写法：节律分层、设备控制节律、资源借出、旁路、生命周期与执行结果 | [SKILL.md](skills/roplat-development/SKILL.md) |
 | robot-behavior | 使用或实现 robot_behavior 驱动：类型化运动/控制能力、控制会话契约、原生异步会话与 roplat 适配；由 drives 中的 robot_behavior-skills 迁入并合并为一个技能 | [SKILL.md](skills/robot-behavior/SKILL.md) |
 
-当前技能对应 roplat `0.5.0` 与 robot_behavior `0.8.0`：资源与业务 Input/Output 分离，统一连接 `&mut robot >> user.resources.0`，多资源逐个连接，无资源归还边。版本及本轮验证来源见 [compatibility.json](compatibility.json)；历史评估仍保留原版来源。核心是未公开发行的内部版本，性能未达标项和已知限制继续保留。
+当前技能对应 roplat `0.5.0` 与 robot_behavior `0.8.0`：资源与业务 Input/Output 分离，统一连接 `&mut robot >> user.resources.0`，多资源逐个连接，无资源归还边。版本及本轮验证来源见 [compatibility.json](compatibility.json)；历史评估仍保留原版来源。两者已发布到 crates.io（robot_behavior 需要 nightly 工具链），仍在快速迭代，API 不稳定；性能未达标项和已知限制继续保留。
 
 ## 使用与验证
 
@@ -26,6 +26,8 @@ python3 skills/roplat-development/scripts/verify_examples.py --roplat /path/to/r
 技能之间可以链接相关说明，但每个技能的基本使用流程应自含。设备专用参数、凭据和现场状态不写入本仓库。版本更新后用实际任务和可执行例子复验，而非仅校验文档格式。
 
 ## 使用验收记录
+
+2026-10-22（roplat 0.5.0 发布提交 `8ca570d` / robot_behavior 0.8.0 发布来源 `8694e5b`）：在发布来源上重新运行三层节律与四种模拟机械臂应用，运行断言与严格 Clippy 通过，例程与锁文件未改动，见[发布复验记录](evaluations/results/20261022/v0.5.0-release-validation.json)。技能中 hard 节律、`move` 域、EventTrigger 发送接口与 `create_signal` 的说明已对照核心源码核对，例程本身不使用它们；本轮未重新进行独立使用评估。
 
 2026-10-13（roplat 0.5.0 / robot_behavior 0.8.0）：两个技能及模板完成资源通道迁移，已在提交 `d6484b1` / `1f6bf80` 上重新运行三层节律与四种模拟机械臂应用，严格 Clippy 和技能格式验证通过，见[最终验证记录](evaluations/results/20261013/resource-borrow-final-validation.json)。[开发工作树记录](evaluations/results/20261013/resource-borrow-validation.json)保留原来源。
 

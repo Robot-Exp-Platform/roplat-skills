@@ -5,7 +5,7 @@ description: 使用或实现 robot_behavior 机器人驱动：在应用中调用
 
 # robot_behavior 驱动能力
 
-robot_behavior 用类型化的能力 trait 描述机器人能做什么：`Robot`（生命周期与原生状态）、`MoveTo<S>`/`MoveTraj<S>`（运动空间）、`ControlWith<S>`/`AsyncControlWith<S>`（控制通道）、模型映射与状态视图。roplat 适配在默认关闭的 `roplat` feature 下。先核对用户依赖的 robot_behavior 与 roplat 版本：本技能对应 robot_behavior `0.8.0` 与 roplat `0.5.0`（见 [version.json](references/version.json)）。
+robot_behavior 用类型化的能力 trait 描述机器人能做什么：`Robot`（生命周期与原生状态）、`MoveTo<S>`/`MoveTraj<S>`（运动空间）、`ControlWith<S>`/`AsyncControlWith<S>`（控制通道）、模型映射与状态视图。roplat 适配在默认关闭的 `roplat` feature 下。先核对用户依赖的 robot_behavior 与 roplat 版本：本技能对应 robot_behavior `0.8.0` 与 roplat `0.5.0`（见 [version.json](references/version.json)），两者都已发布到 crates.io；robot_behavior 使用 nightly 特性（`async_trait_bounds`、`generic_const_exprs`），需要 nightly 工具链。
 
 ## 按意图选择
 
