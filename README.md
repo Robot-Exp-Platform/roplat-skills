@@ -5,19 +5,19 @@
 | 技能 | 用途 | 入口 |
 |---|---|---|
 | roplat-development | 用 Node / Rhythm / System 编写和修改 roplat 应用，重点教授设计哲学到写法：节律分层、设备控制节律、资源借出、旁路、生命周期与执行结果 | [SKILL.md](skills/roplat-development/SKILL.md) |
-| robot-behavior | 使用或实现 robot_behavior 驱动：类型化运动/控制能力、控制会话契约、原生异步会话与 roplat 适配；由 drives 中的 robot_behavior-skills 迁入并合并为一个技能 | [SKILL.md](skills/robot-behavior/SKILL.md) |
+| robot-behavior | 使用或实现 robot_behavior 驱动：类型化运动/控制能力、控制会话契约、原生异步会话与 roplat 适配 | [SKILL.md](skills/robot-behavior/SKILL.md) |
 
-当前技能对应 roplat `0.5.0` 与 robot_behavior `0.8.0`：资源与业务 Input/Output 分离，统一连接 `&mut robot >> user.resources.0`，多资源逐个连接，无资源归还边。版本及本轮验证来源见 [compatibility.json](compatibility.json)；历史评估仍保留原版来源。两者已发布到 crates.io（robot_behavior 需要 nightly 工具链），仍在快速迭代，API 不稳定；性能未达标项和已知限制继续保留。
+当前技能对应 crates.io 上的 roplat `0.5.0` 与 robot_behavior `0.8.0`（robot_behavior 需要 nightly 工具链），见 [compatibility.json](compatibility.json)。两者仍在快速迭代，API 不稳定。技能与例程自成一体，只依赖这两个已发布的包，不需要访问它们的源码仓库。
 
 ## 使用与验证
 
-让 AI 阅读上述入口，并提供你的需求、roplat 仓库位置和使用版本。涉及多层节律时，入口会引导读取边界说明与真实宏范例。技能资产不依赖本机用户目录；验证命令：
+让 AI 阅读上述入口，并提供你的需求、项目位置和使用的版本。涉及多层节律时，入口会引导读取边界说明与可运行范例。验证技能自带的例程（需要 Python 3.11 及以上与 Rust nightly）：
 
 ```sh
-python3 skills/roplat-development/scripts/verify_examples.py --roplat /path/to/roplat --drives /path/to/drives --offline
+python3 skills/roplat-development/scripts/verify_examples.py --offline
 ```
 
-脚本在临时目录复制例程，并以本地核心路径构建运行，不修改 roplat 或调用机器人。`robot_apps` 依赖 drives 的 `robot_behavior`，不给 `--drives` 时跳过。最后打印临时证据目录。版本关联见 [compatibility.json](compatibility.json)，例程通过不代表所有硬件或跨语言路径通过。
+每个例程是依赖 crates.io 包、自带锁文件的独立 Cargo 项目；脚本把它们复制到临时目录，执行 `cargo run --locked` 与严格 Clippy，不连接机器人，最后打印证据目录。没有本地依赖缓存时去掉 `--offline`。例程通过不代表所有硬件或跨语言路径通过。
 
 ## 集合扩展原则
 
@@ -26,6 +26,8 @@ python3 skills/roplat-development/scripts/verify_examples.py --roplat /path/to/r
 技能之间可以链接相关说明，但每个技能的基本使用流程应自含。设备专用参数、凭据和现场状态不写入本仓库。版本更新后用实际任务和可执行例子复验，而非仅校验文档格式。
 
 ## 使用验收记录
+
+2026-10-22（续）：例程改为直接依赖 crates.io 上的 roplat 0.5.0 与 robot_behavior 0.8.0，验证脚本不再需要任何源码仓库；技能文字去掉对核心仓库文档与测试的引用，补齐内置节律、事件与信号、图内 `if` 与守卫、闭包节点的说明。robot_apps 新增两个场景：`plan_hard`（规划放进 hard 节律，控制环最长周期间隔断言；去掉 `.hard()` 后断言失败）与 `task_events`（操作员线程经事件通道发指令，守卫、图内 `if`、`retry` 与信号）。两个例程在 `--locked --offline` 下运行与严格 Clippy 通过，robot_apps 连续运行 10 次稳定，见[复验记录](evaluations/results/20261022/self-contained-validation.json)。
 
 2026-10-22（roplat 0.5.0 发布提交 `8ca570d` / robot_behavior 0.8.0 发布来源 `8694e5b`）：在发布来源上重新运行三层节律与四种模拟机械臂应用，运行断言与严格 Clippy 通过，例程与锁文件未改动，见[发布复验记录](evaluations/results/20261022/v0.5.0-release-validation.json)。技能中 hard 节律、`move` 域、EventTrigger 发送接口与 `create_signal` 的说明已对照核心源码核对，例程本身不使用它们；本轮未重新进行独立使用评估。
 
@@ -37,4 +39,4 @@ python3 skills/roplat-development/scripts/verify_examples.py --roplat /path/to/r
 
 此前：自带三层例程已通过实际运行和 Clippy。另一位未参与技能编写、但已有核心背景的评估者，未读资产实现与验收规则，独立完成了多层采样、错误隔离、兄弟异步域旁路交换三个程序；[产物与结果](evaluations/results/20260920/independent-use/EVALUATION.md)可审阅。这是独立使用验证，不是完全盲评或跨模型能力保证。
 
-历史独立产物只能用对应旧核心复现：`python3 evaluations/verify.py --roplat /path/to/roplat-at-recorded-commit --offline`，不要将它作为 0.5 当前验收。2026-09-21 在干净的 `main` 提交 `c595393` 上重新运行自带例程与此前独立产物，运行断言和 Clippy `-D warnings` 均通过，见[整合后复验记录](evaluations/results/20260921/main-integration-validation.json)。这次复验没有重新进行独立生成评估，也未额外验证 Replay、外语节点或机器人；这些核心能力的工程证据见 [核心整合验收](https://github.com/Robot-Exp-Platform/roplat/blob/c595393df441056a25b2af8bedfcbd0f598b3fec/docs/candidate/integration-validation.md)。此前在 `e1bab70` 上的[发布复验记录](evaluations/results/20260921/publication-validation.json)保留不变。原始日志与构建产物保存在临时目录，仓库只保留代码、锁文件、参数和结果摘要。
+历史独立产物依赖当时未发布的核心版本，只作记录，不能用公开版本复现，也不作为 0.5 验收。2026-09-21 在当时的核心提交 `c595393` 上重新运行自带例程与此前独立产物，运行断言和 Clippy `-D warnings` 均通过，见[整合后复验记录](evaluations/results/20260921/main-integration-validation.json)；这次复验没有重新进行独立生成评估，也未额外验证 Replay、外语节点或机器人。此前在 `e1bab70` 上的[发布复验记录](evaluations/results/20260921/publication-validation.json)保留不变。原始日志与构建产物保存在临时目录，仓库只保留代码、锁文件、参数和结果摘要。

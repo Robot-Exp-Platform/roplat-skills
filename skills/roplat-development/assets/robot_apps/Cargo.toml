@@ -1,0 +1,12 @@
+[package]
+name = "roplat-skill-robot-apps"
+version = "0.0.0"
+edition = "2024"
+publish = false
+
+[workspace]
+
+[dependencies]
+roplat = "0.5.0"
+robot_behavior = { version = "0.8.0", features = ["roplat"] }
+tokio = { version = "1", features = ["rt", "macros", "sync", "time"] }

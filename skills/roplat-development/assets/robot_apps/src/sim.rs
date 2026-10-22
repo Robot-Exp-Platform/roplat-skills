@@ -5,7 +5,7 @@ use std::{ops::ControlFlow, time::Duration};
 
 use robot_behavior::{
     AsyncControlCallback, AsyncControlWith, JointPositionControl, JointSample, JointSpace,
-    JointState, Joints as JointLimits, MoveTo, Robot, RobotResult,
+    JointState, Joints as JointLimits, MoveTo, Robot, RobotException, RobotResult,
 };
 use roplat::{Lifecycle, RoplatError, RoplatResult};
 
@@ -16,6 +16,7 @@ pub struct SimArm {
     q: Joints,
     period: Duration,
     connected: bool,
+    faults: usize,
 }
 
 impl SimArm {
@@ -24,7 +25,14 @@ impl SimArm {
             q,
             period: Duration::from_secs_f64(Self::CONTROL_PERIOD),
             connected: false,
+            faults: 0,
         }
+    }
+
+    /// Make the next `count` point-to-point motions fail, as a transient
+    /// driver fault (a dropped packet, a brief protective stop) would.
+    pub fn fail_next_moves(&mut self, count: usize) {
+        self.faults = count;
     }
 
     pub fn joints(&self) -> Joints {
@@ -80,6 +88,12 @@ impl JointLimits<DOF> for SimArm {
 impl MoveTo<JointSpace<DOF>> for SimArm {
     /// Stand-in for a vendor's blocking point-to-point motion.
     fn move_to(&mut self, target: Joints) -> RobotResult<()> {
+        if self.faults > 0 {
+            self.faults -= 1;
+            return Err(RobotException::CommandException(
+                "transient motion fault".into(),
+            ));
+        }
         self.q = target;
         Ok(())
     }

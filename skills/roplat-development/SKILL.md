@@ -19,7 +19,7 @@ description: 使用 roplat 的 Node、Rhythm 和 System 宏编写、修改或排
 ## 工作流
 
 1. 读 [application-design.md](references/application-design.md)，按其“设计步骤”列出设备与节拍、节律分层、节点职责、创建位置和跨域通信，再写代码。
-2. 对照 [robot_apps](assets/robot_apps/src/) 中最接近的场景：两层任务×控制（`sequence_control`）、一层运动节点（`sequence_motion`）、由 System 创建并启停设备（`sequence_owned`）、多设备旁路（`dual_arm`）。驱动能力、控制会话与适配器契约见同仓 [robot-behavior](../robot-behavior/SKILL.md) 技能。
+2. 对照 [robot_apps](assets/robot_apps/src/) 中最接近的场景：两层任务×控制（`sequence_control`）、一层运动节点（`sequence_motion`）、由 System 创建并启停设备（`sequence_owned`）、重计算放进 hard 节律而控制环不受影响（`plan_hard`）、操作员指令经事件通道驱动并带检查与重试（`task_events`）、多设备旁路（`dual_arm`）。驱动能力、控制会话与适配器契约见同仓 [robot-behavior](../robot-behavior/SKILL.md) 技能。
 3. 按需查语义：语法 [syntax.md](references/syntax.md)；嵌套节律与 Input/Output/Yield/Feed [rhythm-domains.md](references/rhythm-domains.md)；生命周期、停止与错误 [execution-lifecycle.md](references/execution-lifecycle.md)；旁路与外语节点 [communication-and-languages.md](references/communication-and-languages.md)。
 4. 运行与验收：[validation.md](references/validation.md)。
 

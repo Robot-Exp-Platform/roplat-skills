@@ -103,7 +103,60 @@ follower_control >> |(state, _dt)| {
 
 **跟随者何时结束**：旁路传递的是“对方整个任务已完成”，不是“对方本段完成”。单段时二者相同；主设备有多段任务时，在任务节律结束后用一个发布完成标志的节点（如 `tasks >> announce`），跟随者以此判定结束。先读完成标志再读指令，可保证看到完成时拿到的是最后一条指令。
 
-### 3.5 不再需要的构件
+### 3.5 重计算：hard 节律，不拖住控制环
+
+（[plan_hard.rs](../assets/robot_apps/src/plan_hard.rs)）规划、推理、长时间的外语调用会占住所在线程几十毫秒。放在普通节点里，同一运行时上的控制环就会漏掉周期。把它包进 hard 节律，由拥有型域进入：
+
+```rust
+let mut plan = once::<(Joints, bool), Reference>().hard().name("planner");
+tasks >> |goal| {
+    goal >> plan >> move |goal| { goal >> planner; planner };
+    plan.output >> publish;          // 交给控制域的 Latest
+};
+&mut arm >> control.resources.0;
+control >> |(state, _dt)| { watch; state >> follow; ...; servo };
+```
+
+- 规划域与控制域是兄弟域，只经 `Latest` 交接；控制域每周期读最新计划，没有计划时保持当前位置。
+- `planner` 以本体移到 hard 线程、随结果交回，所以必须 `Send + 'static`，并且由创建层（这里是本 System 头段）拥有。
+- 下游要等结果时照常连 `plan.output`；只需最新结果、可能超过控制周期的计算，用旁路交付，不放进控制周期。
+- 例程用看门狗节点记录控制环的最长周期间隔：去掉 `.hard()` 后它等于整个求解时间。
+
+### 3.6 事件驱动的任务：外部指令、检查与重试
+
+（[task_events.rs](../assets/robot_apps/src/task_events.rs)）操作员、上位机或其他程序发来的指令用事件通道进入；每条指令是任务域的一个周期：
+
+```rust
+commands >> |command| {
+    match command {
+        Command::Goto(target) if within_limits(&target) => {
+            target >> clear;
+            if clear.output {
+                target >> retry >> |(target, _attempt)| {
+                    &mut arm >> motion.resources.0;
+                    target >> motion;
+                    motion
+                };
+                &mut arm >> report.resources.0;
+                retry >> report;
+            } else {
+                target >> blocked;
+            }
+        }
+        Command::Goto(target) => { target >> out_of_reach; }
+        Command::Dwell(time) => { time >> dwell; }
+    }
+};
+refresh >> { panel; };
+```
+
+- 检查按性质选写法：只看指令本身的静态检查用守卫；需要节点状态（障碍物模型、标定）的检查让节点输出 bool，再用图内 `if`。
+- `retry(n)` 包住一个步骤，重试只重放该步骤；仍失败时 `retry.output` 是业务数据，交给 `report` 记录，任务器继续处理下一条。要让失败结束整个任务时写 `retry.output?;`。
+- 驱动的瞬时故障用重试，安全相关的拒绝（限位、碰撞）不要重试。
+- 只需知道“有变化”的通知（面板刷新）用信号：多次触发合并为一个周期。需要每个事件及其内容时用事件通道。
+- 触发器放在 System 之外（这里是操作员线程，用 `fire_blocking`），发送完 drop，事件与信号节律随之结束，System 正常返回。节点内发送用 `try_fire`。
+
+### 3.7 不再需要的构件
 
 旧版本的 `Handoff`、把机器人放进 Yield/Feed 的 `TaskSequence`、资源返回边及 `reclaim_input` 不属于 0.5 的借用协议。已有节律若本来就内部拥有设备，可保留该所有权并声明 `Resources = ()`；不要为了统一外观强行外置设备。使用旧版本仓库时按对应版本写法，不混用。
 
@@ -132,4 +185,7 @@ follower_control >> |(state, _dt)| {
 | 两台设备共用一个节律或用图边连接两个控制域 | 一台设备的节拍拖住另一台 | 各自控制节律 + 旁路 |
 | 段内状态（本段轨迹）创建在外层并手动 reset | 依赖隐式重置，易遗漏 | 在任务周期头段创建 |
 | 节点内断言/计数/打印用于验证 | 产物像测试而非应用 | 调用方断言最终结果 |
-| 在图中段插普通 Rust、在 `if` 里写 `>>` | 宏拒绝或不当作图 | 头段准备、尾段处理；分支用 DSL match |
+| 在图中段插普通 Rust | 宏拒绝或不当作图 | 头段准备、尾段处理；中段小计算用 `roplat::node::map`；分支用图内 match / `if` |
+| 用 `loop` 或 `for` 包住图语句来重复执行 | 宏不把循环当作图 | 用节律产生重复（任务节律、`retry`、`feedback`） |
+| 规划、推理等重调用直接放在控制周期里 | 占住线程，控制环漏周期 | hard 节律 + 旁路（3.5） |
+| 把 `EventTrigger` / `SignalTrigger` 交给同一 System 内的节点 | 触发器存活到 System 结束，节律永远不结束 | 触发器留在 System 外；需要中途结束时用停止上下文 |

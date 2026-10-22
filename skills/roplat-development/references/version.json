@@ -1,133 +1,14 @@
 {
-  "core_repository": "https://github.com/Robot-Exp-Platform/roplat",
-  "core_ref": "v0.5.0",
-  "core_version": "0.5.0",
-  "core_commit": "8ca570d3f8be7eef269ab315c7b2a579310454a3",
-  "registry": "crates.io roplat 0.5.0 (packaged from core_commit)",
+  "roplat_version": "0.5.0",
+  "registry": "crates.io",
   "status": "published-release-validated",
-  "scope": "Current assets target the separate Resources borrowing channel: control_layers, two-layer control, MotionNode, System-created arm, dual-arm sideband. Hardware and performance are not validated by these finite examples.",
+  "scope": "Examples depend only on the published crates: control_layers (three rhythm layers, retained state, lifecycle, failure cleanup) and robot_apps on a simulated arm (two-layer control, MotionNode, System-created arm, planning in a hard rhythm beside a control loop, event-driven operator commands with guard, graph if and retry, dual-arm sideband). Hardware, real-time performance and foreign-language paths are not validated by these finite examples.",
   "validation": "scripts/verify_examples.py",
-  "example_dependency_locks": [
-    "assets/control_layers/Cargo.lock",
-    "assets/robot_apps/Cargo.lock"
+  "examples": [
+    "assets/control_layers",
+    "assets/robot_apps"
   ],
-  "drives": {
-    "repository": "https://github.com/Robot-Exp-Platform/drives",
-    "ref": "main",
-    "commit": "4e097e624e06107cb53094a7968992a3cb7a0569",
-    "robot_behavior_version": "0.8.0",
-    "robot_behavior_commit": "8694e5b6dfa81c97136d9e01f36445131c9b06d1",
-    "integration_context": {
-      "scope": "robot_apps compiles drives/robot_behavior at robot_behavior_commit (the source of crates.io robot_behavior 0.8.0) with roplat patched to the local core at core_commit.",
-      "preexisting_worktree_difference": "Driver manifests in drives (robot_behavior, franka-rust, rsbullet, unitree-go2-rs) still pin roplat by Git revision d6484b1, and the drives libk1 and robot_behavior gitlinks differ from the checkouts; the drives dependency sync is a separate pending task."
-    }
-  },
-  "validation_evidence": "evaluations/results/20261022/v0.5.0-release-validation.json",
-  "verified_source_digest": "e19d717333250081aca2a920edca0dc384c30ee14b387aae58754884881c99bc",
-  "digest_scope": [
-    "roplat",
-    "roplat_system",
-    "roplat_macros",
-    "roplat_launch"
-  ],
-  "digest_file_selection": "git-tracked Rust sources (*.rs) and Cargo.toml files under digest_scope, hashed from committed blob content (independent of checkout line endings)",
-  "digest_algorithm": "SHA256 of json.dumps(relative_path_to_file_sha256, sort_keys=True)",
-  "pre_release_verification": {
-    "core_ref": "codex/resource-borrow-channel",
-    "core_version": "0.5.0",
-    "core_commit": "d6484b1c595b7d69e8727dc04d471f4bbf57def4",
-    "status": "validated-final-commits-not-public-release",
-    "drives": {
-      "repository": "https://github.com/Robot-Exp-Platform/drives",
-      "ref": "codex/resource-borrow-channel",
-      "commit": "143c6a1ce196d1920203c6358117b859ab890df9",
-      "robot_behavior_version": "0.8.0",
-      "robot_behavior_commit": "1f6bf80e6fa18cfb331ea5c18db790cc85ef8e8d",
-      "integration_context": {
-        "preexisting_worktree_difference": "libk1 gitlink differs from the committed aggregate; intentionally preserved and excluded from this release.",
-        "scope": "Final skill validation uses the committed core and robot_behavior dependencies. This linkage does not assert a completely clean drives working tree or validate the unrelated libk1 checkout.",
-        "verified_aggregate_commit": "9268ed050dfecf9c1fdea66d999f0c94a455ee64",
-        "release_linkage_note": "143c6a1 corrects a review-document type spelling after 9268ed0; code, manifests and lockfiles are unchanged."
-      }
-    },
-    "validation_evidence": "evaluations/results/20261013/resource-borrow-final-validation.json",
-    "verified_source_digest": "e5bcc23ae4a00a7bf9987815e13f55a27255baa8e137d80ff79626fd28d13fde",
-    "independent_validation_evidence": "evaluations/results/20261013/skills-forward-validation.json"
-  },
-  "previous_resource_lending_verification": {
-    "core_repository": "https://github.com/Robot-Exp-Platform/roplat",
-    "core_ref": "main",
-    "core_version": "0.4.0",
-    "core_commit": "1a4214906fbbc2159ec1147a2dcd069dd811630a",
-    "status": "verified-internal-engineering-candidate-not-public-release",
-    "scope": "control_layers (System macro, multi-layer rhythms, lifecycle, execution outcomes) and robot_apps (robot_behavior 0.7.0 resource lending with &mut: two-layer control, MotionNode, System-created arm, dual-arm sideband on a simulated arm) run with Clippy -D warnings on Windows against this core commit. Three independent sub-agent tasks (evaluations/results/20261012) also ran. This does not replace the core integration matrix, exercise Replay, foreign-language boundaries or real devices, or establish stable-release guarantees.",
-    "validation": "scripts/verify_examples.py",
-    "example_dependency_locks": [
-      "assets/control_layers/Cargo.lock",
-      "assets/robot_apps/Cargo.lock"
-    ],
-    "drives": {
-      "repository": "https://github.com/Robot-Exp-Platform/drives",
-      "ref": "main",
-      "commit": "103f3a6",
-      "robot_behavior_version": "0.7.0",
-      "robot_behavior_commit": "e6455314b67e2a749e0a0606e1f7ade8f03d7871"
-    },
-    "verified_source_digest": "8e427f1874313eb3d6f208dad2b7b66a9fbe396441fc381329e3d7e46ad18e28",
-    "digest_scope": [
-      "roplat",
-      "roplat_system",
-      "roplat_macros",
-      "roplat_launch"
-    ],
-    "digest_file_selection": "git-tracked Rust sources (*.rs) and Cargo.toml files under digest_scope, hashed from committed blob content (independent of checkout line endings)",
-    "digest_algorithm": "SHA256 of json.dumps(relative_path_to_file_sha256, sort_keys=True)",
-    "earlier_main_verification": {
-      "core_commit": "faaefe02c856c35b572c75a29d694129029d584a",
-      "verified_source_digest": "21d4ddb271deca71fb3275b5dda141a147f11ebac2110cee309104ac73dd635d",
-      "note": "roplat 0.3.0 main before the DSL revision; drives b1d0459, robot_behavior 67a9456"
-    },
-    "older_main_verification": {
-      "core_commit": "c595393df441056a25b2af8bedfcbd0f598b3fec",
-      "verified_source_digest": "ba83f9dac4793b3beafba08f35a925da1a92d0ea85ec8937693e23e1318894da",
-      "evidence": "evaluations/results/20260921/main-integration-validation.json"
-    },
-    "historical_validation": {
-      "core_repository": "https://github.com/Robot-Exp-Platform/roplat",
-      "core_ref": "codex/core-candidate-consolidation",
-      "scope": "Rust Node / Rhythm / System audit snapshot, native and independently validated sideband communication. IPC raw Copy encoding, incomplete Replay modes and Python transparent Node bridge remain unchanged by author decision, outside accepted paths. This is not a frozen or released core version.",
-      "validation": "scripts/verify_examples.py",
-      "example_dependency_lock": "assets/control_layers/Cargo.lock",
-      "base_commit": "577d642569f03665bbaded994cd5db631cc36ee3",
-      "verified_source_digest": "b7b35e868303b07b0dafe30975545cfaa2ac4d963fb51071e81195b7e1ae0f9f",
-      "status": "uncommitted-consolidation-audit-snapshot",
-      "digest_scope": [
-        "roplat",
-        "roplat_system",
-        "roplat_macros",
-        "roplat_launch"
-      ],
-      "digest_algorithm": "SHA256 of json.dumps(relative_path_to_file_sha256, sort_keys=True)",
-      "audit_snapshot_manifest_digest": "19f935f3102a30822958c29c2f16f7fdf177e017e879c262aab8a48f57c02885"
-    },
-    "integrated_changes": {
-      "communication": {
-        "source_commit": "e1bab70beeccec2a19953390f39ac3f4945c771a",
-        "integrated_into_verified_core": true,
-        "reference": "docs/communication-boundary.md"
-      },
-      "replay": {
-        "source_commit": "50e55932be516d3266c0001c43abd6bb9c20a762",
-        "integrated_into_verified_core": true,
-        "reference": "docs/replay.md"
-      }
-    },
-    "previous_verification": {
-      "core_ref": "codex/communication-boundary-cost",
-      "core_commit": "e1bab70beeccec2a19953390f39ac3f4945c771a",
-      "verified_source_digest": "9052808cbdd3feea17084fe7486a24f9d5f3ccfaf6cea0d611fdb96069b17164",
-      "evidence": "https://github.com/Robot-Exp-Platform/roplat-skills/blob/72e6f2c5d75b6c1086ec6a626181484fef9bad70/evaluations/results/20260921/publication-validation.json"
-    },
-    "core_integration_evidence": "docs/candidate/integration-validation.md"
-  }
+  "robot_behavior_version": "0.8.0",
+  "validation_evidence": "evaluations/results/20261022/self-contained-validation.json",
+  "provenance": "evaluations/provenance.json"
 }

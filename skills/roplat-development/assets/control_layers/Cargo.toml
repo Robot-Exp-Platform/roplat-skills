@@ -7,5 +7,5 @@ publish = false
 [workspace]
 
 [dependencies]
-roplat = { path = @ROPLAT_CRATE_PATH@ }
+roplat = "0.5.0"
 tokio = { version = "1", features = ["rt", "rt-multi-thread", "macros", "sync", "time"] }

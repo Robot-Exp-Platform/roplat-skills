@@ -1,0 +1,52 @@
+{
+  "date": "2026-10-22",
+  "status": "passed-against-published-crates",
+  "change": "Examples depend on the published crates instead of local source checkouts; the skill text no longer refers to the core repository; robot_apps gains plan_hard and task_events.",
+  "dependencies": {
+    "control_layers": {
+      "roplat": "0.5.0 from crates.io"
+    },
+    "robot_apps": {
+      "roplat": "0.5.0 from crates.io",
+      "robot_behavior": "0.8.0 from crates.io"
+    }
+  },
+  "toolchain": "rustc 1.100.0-nightly (67eda617e 2026-09-10)",
+  "platform": "Darwin arm64",
+  "command": "python3 skills/roplat-development/scripts/verify_examples.py --offline",
+  "asset_checks": [
+    {"example": "control_layers", "step": "run", "locked": true, "offline": true, "returncode": 0},
+    {"example": "control_layers", "step": "clippy", "locked": true, "offline": true, "returncode": 0},
+    {"example": "robot_apps", "step": "run", "locked": true, "offline": true, "returncode": 0},
+    {"example": "robot_apps", "step": "clippy", "locked": true, "offline": true, "returncode": 0}
+  ],
+  "scenario_checks": {
+    "plan_hard": {
+      "claim": "A planner that blocks its thread for 40 ms per solve, run in a hard rhythm, leaves the 2 ms control loop's longest cycle gap below half a solve.",
+      "negative_probe": "With `.hard()` removed (the owned domain kept), the assertion fails: a control cycle waited 45.1 ms.",
+      "repeat_runs": "10 of 10 consecutive runs of the robot_apps binary passed."
+    },
+    "task_events": {
+      "claim": "Six operator commands sent with fire_blocking from a thread outside the runtime: a target beyond the joint limits is rejected by the guard, a target in the fixture zone is skipped by the graph if on the clearance node, the first motion's injected fault is retried (4 attempts in total), the arm ends at HOME, and refresh signals produce between 1 and 6 panel cycles.",
+      "termination": "Both triggers live outside the System; the System returns once the console drops them and the queue is drained."
+    }
+  },
+  "source_artifacts": {
+    "asset_digest": "f90db50c398c3bd2c948cb6f96612b55bb940fd4003cdedc6ee53ffaedd32899",
+    "algorithm": "SHA256 of json.dumps(relative_path_to_file_sha256, sort_keys=True), raw contents of git-tracked files under skills/roplat-development/assets",
+    "file_count": 15
+  },
+  "skill_schema_validation": {
+    "roplat-development": "passed",
+    "robot-behavior": "passed",
+    "validator": "skill-creator/scripts/quick_validate.py"
+  },
+  "warnings": [
+    "robot_behavior retains a manifest manual_readme warning and the nightly generic_const_exprs trait-solver fallback warning; strict Clippy on the examples succeeded."
+  ],
+  "limits": [
+    "Finite programs on a simulated arm; no hardware, real-time guarantee, GUI, foreign-language or cross-platform claim.",
+    "The plan_hard gap assertion is timing based; its margin is a 2 ms period against a 20 ms bound, measured on one Mac.",
+    "No new independent-use evaluation was run."
+  ]
+}
