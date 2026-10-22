@@ -22,7 +22,7 @@ outer >> sink;
 
 以上是片段，各对象须有匹配类型。三处尾表达式无分号：controller Output 是 inner Feed，inner 完整 Output 是 middle Feed，middle 完整 Output 是 outer Feed。末尾的外层 `};` 结束父图语句，**不会改变最内层 controller 的 Feed**。如果在 inner 块里写 `controller;`，该 inner Feed 就是 `()`。
 
-不要在同一层再写一份 inner 域来“再次调用”同一个实例。单实例同层一个调度位置；重复周期由 Rhythm 产生。
+不要再写一份 inner 域来“再次调用”同一个实例。一个实例只有一个调用位置，跨作用域也一样（只有同一 match 的互斥分支可以共用）；重复周期由 Rhythm 产生，需要多处调用就建多个实例。
 
 ## 生命周期与存活范围
 
