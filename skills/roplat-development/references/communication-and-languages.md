@@ -39,9 +39,9 @@ typed IPC 的自定义消息要求 `Copy + NativeMessage`；`#[roplat_msg]` 自�
 
 `roplat_native` 承载无运行时依赖的 `NativeMessage`、`TypeBinding`、`#[roplat_msg]` 与 `#[derive(NativeMessage)]`。应用仍可使用原来的 `roplat::native_message`、`roplat::type_binding`、`roplat::NativeMessage` 与 `roplat::roplat_msg`，这些路径是重新导出，不应机械替换所有已有导入。只定义消息而不依赖运行时的库可依赖 `roplat_native`；由于消息宏展开仍引用 `roplat::…`，该库根部需要 `extern crate roplat_native as roplat;`。
 
-公共消息来自 `roplat_msgs`，例如 `Pose`、`JointSample<N>`、`JointState<N>`、`Header` 与 `Stamped<T>`；它也不依赖运行时。使用 SI 单位与弧度，四元数顺序为 `x, y, z, w`；可选字段通过 `valid` 位掩码与 `Option` 访问器表示。按需开启 `nalgebra`（转换与位姿运算）或 `serde`（序列化）。具体消息可生成 C/Python 绑定；带常量泛型长度的消息只有 `NativeMessage`，不能据此推断能直接生成外语头文件。行为库的 `roplat_behavior` 及算法包迁移见同仓 [robot-behavior](../../robot-behavior/SKILL.md)。这些新包须使用相互匹配的源码来源，不能给发布例程添加不存在的 registry 版本。
+公共消息来自 `roplat_msgs`，例如 `Pose`、`JointSample<N>`、`JointState<N>`、`Header` 与 `Stamped<T>`；它也不依赖运行时。使用 SI 单位与弧度，四元数顺序为 `x, y, z, w`；可选字段通过 `valid` 位掩码与 `Option` 访问器表示。按需开启 `nalgebra`（转换与位姿运算）或 `serde`（序列化）。时间来源用 `roplat_msgs::Clock`：`MonotonicClock`（进程内共享起点）、`RealtimeClock`、由仿真器或回放推进的 `ManualClock`；`Stamp` 只在同一时钟内比较，不要在节点或驱动里直接用 `Instant::now()` 打时间戳。核心 `SysTimer` 尚未接入 `Clock`，仿真锁步目前需要节律自己调用 `sleep_until`。具体消息可生成 C/Python 绑定；带常量泛型长度的消息只有 `NativeMessage`，不能据此推断能直接生成外语头文件。行为库的 `roplat_behavior` 及算法包迁移见同仓 [robot-behavior](../../robot-behavior/SKILL.md)。这些新包须使用相互匹配的源码来源，不能给发布例程添加不存在的 registry 版本。
 
-`roplat_build` 会为依赖图中的消息生成头文件/存根；嵌套类型的头文件不自动包含其依赖头，C++ 应用需要按依赖顺序包含。不要把“Rust 消息可编译”当作 C++/Python 绑定已经验证。
+`roplat_build` 会为依赖图中的消息生成头文件/存根；嵌套消息的头文件会 `#include` 其依赖头，Python 存根按顶层模块 `from vector3 import Vector3` 导入依赖（核心 `102fb36` 起；更早的源码仍需按依赖顺序手动包含）。不要把“Rust 消息可编译”当作 C++/Python 绑定已经验证。
 
 ### 当前主线：额外的通信场景
 

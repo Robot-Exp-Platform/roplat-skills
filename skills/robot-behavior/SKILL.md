@@ -7,7 +7,7 @@ description: 使用或实现 roplat_behavior 机器人驱动：在应用中调�
 
 roplat_behavior 用类型化能力 trait 描述机器人能做什么：`Robot`、`MoveTo<S>` / `MoveTraj<S>`、`ControlWith<S>` / `AsyncControlWith<S>`、模型映射与状态视图。roplat 适配由默认关闭的 `roplat` feature 启用。
 
-本 `next` 分支对应源码 `roplat_behavior 0.9`，先核对项目 manifest、锁文件、源码提交与 [version.json](references/version.json)。技能目录名 `robot-behavior` 保留以兼容既有链接。0.9 项目先读[迁移与依赖路径](references/migration-0.9.md)；截至 2026-10-26，四个行为/算法包与消息包尚未发布，必须使用匹配源码。已发布 `robot_behavior 0.8.1` / `roplat 0.5.1` 项目使用 [`main` 技能](https://github.com/Robot-Exp-Platform/roplat-skills/tree/main)，不要直接套用本分支的新采样 API。
+本 `next` 分支对应源码 `roplat_behavior 0.9`，先核对项目 manifest、锁文件、源码提交与 [version.json](references/version.json)。技能目录名 `robot-behavior` 保留以兼容既有链接。0.9 项目先读[迁移与依赖路径](references/migration-0.9.md)；截至 2026-10-27，五个行为/算法/描述包（含 `roplat_description`）与消息包尚未发布，必须使用匹配源码。已发布 `robot_behavior 0.8.1` / `roplat 0.5.1` 项目使用 [`main` 技能](https://github.com/Robot-Exp-Platform/roplat-skills/tree/main)，不要直接套用本分支的新采样 API。
 
 0.9 的契约包仍需 nightly（`async_trait_bounds`）；`generic_const_exprs` 已移到 `roplat_kinematics`。控制器、运动学和轨迹分别来自 `roplat_control`、`roplat_kinematics`、`roplat_trajectory`，不再从契约包导入。
 
@@ -18,6 +18,7 @@ roplat_behavior 用类型化能力 trait 描述机器人能做什么：`Robot`�
 | 用已有驱动写应用、示例、有界控制会话、Roplat 集成 | [use-robot-driver.md](references/use-robot-driver.md) |
 | 接入新机器人、重构驱动、补 trait、审查实现语义 | [implement-robot-driver.md](references/implement-robot-driver.md) |
 | 原生异步会话、并发控制节律、嵌套 Tokio runtime 排错 | [native-async-control.md](references/native-async-control.md) |
+| 夹爪、力/力矩、IMU、相机；URDF 模型、限位与正运动学 | [robot-behavior-overview.md](references/robot-behavior-overview.md) 的“末端与传感器契约”“机器人描述” |
 
 两者都先读 [robot-behavior-overview.md](references/robot-behavior-overview.md)：当前 trait、类型与语义速查。
 

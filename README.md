@@ -30,6 +30,8 @@ python3 skills/roplat-development/scripts/verify_examples.py \
 
 ## 使用验收记录
 
+2026-10-27：`next` 同步生态 P0 开发分支（核心 `102fb36`、行为库 `e9ef616`，均为未合并 PR）：嵌套消息头文件自动包含依赖、`roplat_msgs::Clock` 时钟源、`roplat_description`（URDF 模型）以及夹爪/力矩/IMU/相机契约。三个例程在这两个提交上复验通过，见[开发线验证](evaluations/results/20261027/development-validation.json)；例程尚未直接使用新增 API。
+
 2026-10-26：按 `main` 发布线 / `next` 开发线分离维护。`next` 的 robot_apps 已整体迁到 roplat_behavior 0.9，包括原有六种应用结构；behavior_current 验证拆包、Pose/采样访问器、DH 映射和模型选择。当前源码基线为核心 `78fd47e`、行为库 `ef95abc`，本分支验收见[开发线验证](evaluations/results/20261026/development-validation.json)。前序混合审计记录保留为历史，不代替本分支验证。未进行真机或外语运行验收。
 
 2026-10-22（续）：例程改为直接依赖 crates.io 上的 roplat 0.5.0 与 robot_behavior 0.8.0，验证脚本不再需要任何源码仓库；技能文字去掉对核心仓库文档与测试的引用，补齐内置节律、事件与信号、图内 `if` 与守卫、闭包节点的说明。robot_apps 新增两个场景：`plan_hard`（规划放进 hard 节律，控制环最长周期间隔断言；去掉 `.hard()` 后断言失败）与 `task_events`（操作员线程经事件通道发指令，守卫、图内 `if`、`retry` 与信号）。两个例程在 `--locked --offline` 下运行与严格 Clippy 通过，robot_apps 连续运行 10 次稳定，见[复验记录](evaluations/results/20261022/self-contained-validation.json)。

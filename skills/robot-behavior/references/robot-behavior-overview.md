@@ -2,7 +2,7 @@
 
 这是 0.9 源码的能力与语义速查。0.8 项目先按 [迁移说明](migration-0.9.md) 区分旧 API。
 
-源码仓库为 `roplat_behavior`，契约 crate 在其 `roplat_behavior/` 子目录；控制器、运动学、轨迹分别在同仓的 `roplat_control/`、`roplat_kinematics/`、`roplat_trajectory/`。共享位姿和采样在同级核心仓库 `roplat/roplat_msgs/`。旧 `drives/robot_behavior` 位置不再是当前集成布局。
+源码仓库为 `roplat_behavior`，契约 crate 在其 `roplat_behavior/` 子目录；控制器、运动学、轨迹、机器人描述分别在同仓的 `roplat_control/`、`roplat_kinematics/`、`roplat_trajectory/`、`roplat_description/`。共享位姿和采样在同级核心仓库 `roplat/roplat_msgs/`。旧 `drives/robot_behavior` 位置不再是当前集成布局。
 
 ## 公开入口
 
@@ -285,6 +285,23 @@ Node / Rhythm / 资源的创建层负责启用与关闭；在 System 内创建�
 - 12 unsupported capability map
 
 一个驱动不需要实现所有示例，但支持的能力应该有短例程证明。
+
+## 末端与传感器契约
+
+`Gripper`、`ForceTorqueSensor`、`ImuSensor`、`Camera` 由 `behavior::*` 与 `driver::*` 导出。它们不是 `Robot` 的子 trait：夹爪或传感器可以属于机械臂驱动（如 Franka 手爪），也可以是独立设备，由持有连接的类型实现。
+
+- `Gripper`：`read_gripper() -> GripperState`，`move_gripper(GripperCommand)` 在动作结束后返回，`force > 0` 表示抓取，结果看 `GripperState::grasped`；`home_gripper` 默认 `Ok(())`，`stop_gripper` 默认返回不支持。
+- `ForceTorqueSensor::read_wrench() -> ForceTorque`（即 `Stamped<Wrench>`，传感器坐标系由 header 给出）；`bias_wrench` 默认返回不支持。
+- `ImuSensor::read_imu() -> Stamped<Imu>`，缺失分量通过 `Imu` 的位掩码表示，读取用 `orientation()` 等 `Option` 访问器。
+- `Camera`：`camera_info() -> CameraInfo`，`capture() -> Stamped<Self::Frame>`。通用图像类型随数据流任务确定，目前帧类型由驱动定义。
+
+读数的 `Header` 应来自驱动持有的 `Clock`（见 roplat-development 的通信说明），`seq` 按流递增；不要伪造时间戳或用零值表示缺失。
+
+## 机器人描述（roplat_description）
+
+`RobotModel::from_urdf_file` / `from_urdf_str` 把 URDF 读成运动学树：`links`（惯量、visual / collision 几何，网格文件名保持原文）与 `joints`（类型、原点、轴、限位）。`model.chain(base, tip)` 取一条路径：`dof()`、`joint_names()`、`forward_kinematics(&q) -> Pose`、`joint_limits::<N>() -> JointLimits<N>`（URDF 没有加速度限，`ddq_max` 为无穷）、`violated_position_limits(&q)`。连续关节位置范围为无穷。
+
+它只依赖 `roplat_msgs`，仿真、可视化和安全检查可以共用同一份模型；DH 运动学仍在 `roplat_kinematics`，两者是并列的模型来源。不解析 xacro 与 Bullet 扩展几何（`plane`、`cdf`），也不解析 `package://` 路径。
 
 ## 仿真能力与模型路径
 
