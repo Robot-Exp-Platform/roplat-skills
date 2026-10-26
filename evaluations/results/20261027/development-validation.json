@@ -277,12 +277,13 @@
     "missing": []
   },
   "validated_file_sha256_lf": {
+    "README.md": "f32a6b211730fd3c967a08dd1e598f69011a906dd04f96cf733b29432dcd2a4a",
     "skills/robot-behavior/SKILL.md": "d195a24d973cf8d32aa8d285ed20039edcdb4d83d246a71e8a94770ee1f2a5f1",
     "skills/robot-behavior/references/implement-robot-driver.md": "b06383cce6aa887e38d31d72823c1e7a735076bba8ffabbbc0ede5666afab2e6",
     "skills/robot-behavior/references/migration-0.9.md": "c86ccbd5b60ac480ffb9401dd938881eae0c3773c4741aa934bfa7da5b709d44",
     "skills/robot-behavior/references/robot-behavior-overview.md": "cfdbad51c940535f564074dae1ff09aa2af98f9d0ba3281272f1f479966813e5",
     "skills/robot-behavior/references/version.json": "6289524be0f7cf2fc88b147994ac4f3f96261da13baf7b14bedb83b419d948d5",
-    "skills/roplat-development/references/communication-and-languages.md": "1700865ada8a8014b57aeee6bfa955b715d18f0613594f0c595572bd2b8a01b8",
+    "skills/roplat-development/references/communication-and-languages.md": "33676eabb9cf14f0e7ecb4fe94bc47efdd9687abe08d97552637d6854fb1e985",
     "skills/roplat-development/references/version.json": "a115b8fad5343f5ed1394a68c6c365009147fcd22e9745a6c3b4ef8583647b35"
   },
   "limits": [
@@ -291,5 +292,6 @@
     "Before this run, robot_apps twice exceeded its 20 ms planner-gap assertion (21.41 ms under concurrent load, 20.68 ms right after it) and then passed repeatedly; the unmodified sources passed in the same period. Treated as timing jitter; the assertion is unchanged.",
     "Skill quick-validate (skill-creator) was not run in this pass.",
     "The first run of this pass failed before testing: the sandbox denied cargo writes under the system temp directory. The recorded run sets TMP/TEMP to the evidence directory; the scripts and sources are unchanged."
-  ]
+  ],
+  "validated_file_sha256_lf_note": "Hashes of the committed files changed on this branch (LF-normalized), excluding this evidence file."
 }
