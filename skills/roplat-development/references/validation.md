@@ -1,14 +1,17 @@
 # 验证、版本核对与排错
 
-先确定用户项目依赖的 roplat 版本（`Cargo.toml` / `Cargo.lock`）。本技能对应 roplat `0.5.1` 与 robot_behavior `0.8.1`，见 [version.json](version.json)。0.4 及更早的资源返回边、`ResourceSlot`、`reclaim_input` 与 0.5 不兼容，不要混用；`stop_check` 不是可用属性。
+本 `next` 分支验证当前源码组合：核心提交、行为库0.9提交及版本见 [version.json](version.json)。发布依赖验证在 [`main`](https://github.com/Robot-Exp-Platform/roplat-skills/tree/main)，不能因两者核心版本号同为0.5.1而混用。0.4的资源返回边、ResourceSlot与reclaim_input不适用于当前图语法。
 
 ## 可运行例程
 
 ```sh
-python3 <skill目录>/scripts/verify_examples.py --offline
+python3 <skill目录>/scripts/verify_examples.py \
+  --roplat /path/to/roplat --behavior /path/to/roplat_behavior --offline
 ```
 
-每个例程是独立的 Cargo 项目，依赖 crates.io 上的 roplat（robot_apps 另依赖 robot_behavior），自带 `Cargo.lock`。脚本把它们复制到新的临时目录，执行 `cargo run --locked` 与 `cargo clippy --locked -- -D warnings`，不在技能目录生成 target，不连接机器人，最后打印证据目录。需要 Python 3.11 及以上。没有离线依赖缓存时去掉 `--offline`，Cargo 会从 crates.io 下载依赖，先确认用户环境允许联网。robot_apps 依赖的 robot_behavior 使用 nightly 特性，例程目录里的 `rust-toolchain.toml` 选择 nightly；`--only robot_apps` 可单独检查一个例程。也可以直接在例程目录里 `cargo run`。
+需要 Python 3.11 及以上与 nightly。参数指向两个仓库根；脚本在临时副本的应用根 patch 核心、消息和四个行为/算法包，核对 manifest 包名及 Cargo 实际选用的来源，再运行断言与 `cargo clippy -- -D warnings`。源码模式重新解析锁文件并记录确切提交、dirty状态和依赖来源，不把 registry 回退误报为源码验证。没有缓存时去掉 `--offline`。
+
+默认验证全部三个例程；`--only robot_apps` 或 `--only behavior_current` 可限制范围。锁文件保留已验证的解析组合，源码 patch 的版本/依赖变化需重新审阅解析结果。可用 `CARGO_TARGET_DIR` 复用构建缓存，证据与项目副本仍独立生成。路径布局见[迁移说明](../../robot-behavior/references/migration-0.9.md)。
 
 | 例程 | 内容 | 断言 |
 |---|---|---|
@@ -17,6 +20,7 @@ python3 <skill目录>/scripts/verify_examples.py --offline
 | [plan_hard.rs](../assets/robot_apps/src/plan_hard.rs) | 阻塞线程的规划器放进 hard 节律，控制环同时保持节拍，经 `Latest` 交接 | 控制环最长周期间隔小于求解时间的一半（去掉 `.hard()` 后等于整个求解时间） |
 | [task_events.rs](../assets/robot_apps/src/task_events.rs) | 操作员线程经事件通道发指令；守卫做限位检查，图内 `if` 用碰撞检查节点的结论，`retry` 重试驱动故障，信号合并刷新请求 | 拒绝与跳过的目标、重试次数、最终位置 |
 | [dual_arm.rs](../assets/robot_apps/src/dual_arm.rs) | 两台设备各自的控制节律，经 `Latest` 旁路跟随 | 跟随臂保持偏移 |
+| [behavior_current](../assets/behavior_current/src/main.rs) | 0.9 拆包、DH 映射、位姿/采样、纯数据控制器与轨迹、模拟模型选择、借用资源的 MotionNode | FK、有效位、控制结果、模型选择与最终关节位置 |
 
 这些是特定负载的有限程序：不能推广为任意 DSL 写法都被支持，也不代表真实设备、实时性能或跨平台验证。
 
@@ -55,4 +59,4 @@ python3 <skill目录>/scripts/verify_examples.py --offline
 
 修改后运行相关包的测试和 Clippy，按影响范围决定是否做完整验证。核心或驱动接口层面的改动先与用户讨论目的、利弊和兼容性；技能本身不授权这类重构。报告性能时写明版本、机器、负载、采样方式和失败项，不从展开代码更短或 Future 更小直接推断更快。消息边界的限制（bool 等字段的接收值不校验）见[通信说明](communication-and-languages.md)，不能据此宣称可以安全接收任意外部字节。有限测试通过不代表所有路径安全、完整或达到稳定发行标准。
 
-例程保留独立锁文件；依赖变化使 `--locked` 失败时，审阅并重新验证锁文件后更新技能资产，不在交付脚本中静默解除锁定。维护者诊断本地修改时可用 `--patch roplat=<本地 crate 目录>`，此时脚本不加 `--locked`，并核对 Cargo 实际选择的来源；patch 未被采用或没有被所选例程使用时验证失败。诊断结果与无 patch 的发布版验收分开记录。`--profile published` 等价于默认运行。
+维护者可用额外 `--patch CRATE=PATH` 验证特定源码，路径指向 crate 目录。验证器必须确认实际采用该路径，未使用或版本不兼容的显式 patch 判失败。源码模式不加 `--locked`；升级后的锁文件应复验后再纳入本分支。

@@ -1,6 +1,6 @@
 # 实现或审查驱动（implement-robot-driver）
 
-Implement or review a driver against published `robot_behavior` 0.8.1. Paths beginning with `robot_behavior/` refer to that dependency's package root, not an unreleased source checkout.
+Implement or review a driver so it honestly fits the current `roplat_behavior` abstraction.
 
 Read the shared [API and semantics reference](robot-behavior-overview.md) first. Then read the target crate's current source before editing. For application graph examples, combine this guide with the sibling [roplat-development](../../roplat-development/SKILL.md) skill; keep this guide focused on device capabilities.
 
@@ -11,7 +11,7 @@ Read [native async control](native-async-control.md) when choosing or implementi
 Use this skill for:
 
 - implementing a new hardware or simulator driver
-- refactoring a downstream driver to current `robot_behavior` traits
+- refactoring a downstream driver to current `roplat_behavior` traits
 - reviewing whether a driver implements capabilities honestly
 - deciding whether a vendor API should become a shared trait
 - adding examples that prove implemented capabilities
@@ -21,7 +21,7 @@ Do not use this skill for ordinary application examples. Switch to `use-robot-dr
 
 ## Design Rule
 
-`robot_behavior` is a capability contract layer. A driver should expose what the backend can really do and explicitly reject what it cannot do.
+`roplat_behavior` is a capability contract layer. A driver should expose what the backend can really do and explicitly reject what it cannot do.
 
 Avoid:
 
@@ -29,7 +29,7 @@ Avoid:
 - presenting a blocking async-callback session as truly asynchronous transport
 - fake dynamics or kinematics
 - one-off shared traits for a single vendor function
-- duplicated controller logic already present in `robot_behavior::controller`
+- duplicated controller logic already present in `roplat_control`
 - hidden extra sockets/sessions that compete for the same robot resource
 
 ## Import Rule
@@ -37,12 +37,12 @@ Avoid:
 Inside driver crates:
 
 ```rust
-use robot_behavior::driver::*;
+use roplat_behavior::driver::*;
 ```
 
 This imports user-facing behavior traits plus implementation traits: `MoveTo`, `MoveTraj`, and `ControlWith`.
 
-`RobotResult` and `RobotException` are root exports, not included in these glob imports. Import the ones your implementation uses explicitly with `use robot_behavior::{RobotException, RobotResult};`.
+`RobotResult` and `RobotException` are root exports, not included in these glob imports. Import the ones your implementation uses explicitly with `use roplat_behavior::{RobotException, RobotResult};`.
 
 ## Implementation Order
 
@@ -97,7 +97,7 @@ Keep one exclusive backend owner for communication/control. `read_state`, motion
 
 ## Units And Limits
 
-Convert vendor units at the boundary. Public `robot_behavior` values use:
+Convert vendor units at the boundary. Public `roplat_behavior` values use:
 
 - rad, rad/s, rad/s^2, rad/s^3
 - N*m, N*m/s
@@ -133,7 +133,7 @@ Map native telemetry into current state types:
 - use `ArmState<N>` for serial arms
 - use `BaseState`, `MobileBaseState`, `QuadrupedState<N>`, or `HumanoidState<N>` for other forms
 
-Preserve `meas`, `cmd`, and `des` when the backend exposes them. If a field is unavailable, set `None`; do not invent values that look measured.
+Preserve `meas`, `cmd`, and `des` when the backend exposes them. For unavailable sample fields use `JointSample::EMPTY` / `SpatialSample::EMPTY`, or clear validity with setters such as `set_q(None)` / `set_pose(None)`; do not assign the old public Option fields or invent measured values.
 
 ## Arm And Other Capability Bundles
 
@@ -199,7 +199,7 @@ Err(RobotException::UnprocessableInstructionError(
 
 Do not leave a runtime panic. Do not silently reinterpret sparse waypoints as dense trajectories unless that is documented and safe.
 
-Use `robot_behavior::utils::trajectory` only when the driver really wires in COPP or sampled path generation.
+Use `roplat_trajectory` only when the driver really wires in COPP or sampled path generation.
 
 ## ControlWith
 
@@ -282,8 +282,8 @@ impl SpaceMap<JointSpace<7>, FlangeSpace> for MyRobot {
 
 Implement model helper traits only with reliable data:
 
-- `ArmForwardKinematics<N>` from DH data
-- `ArmInverseKinematics<N>` for IK
+- `roplat_kinematics::ArmForwardKinematics<N>` from DH data
+- `roplat_kinematics::ArmInverseKinematics<N>` for IK; add `roplat_kinematics::dh_kinematics!(MyRobot, N)` (or `..., inverse`) to connect DH helpers to model maps
 - `ForwardKinematics<N>`
 - `InverseKinematics<N>`
 - `JacobianModel<N>`
@@ -332,7 +332,7 @@ Only update `.pyi`, `.hpp`, `to_py`, `to_cxx`, or `to_c` after the Rust trait su
 
 ## Examples
 
-Use `robot_behavior/EXAMPLES.md` as capability checklist. A driver should provide examples for every supported common behavior:
+Use `roplat_behavior/EXAMPLES.md` as capability checklist. A driver should provide examples for every supported common behavior:
 
 - lifecycle and state read
 - joint motion
@@ -358,12 +358,13 @@ cargo check -p <crate> --all-targets --offline
 cargo package -p <crate> --allow-dirty --no-verify --list --offline
 ```
 
-For `robot_behavior` itself:
+For `roplat_behavior` itself:
 
 ```powershell
-cd robot_behavior
-cargo check --all-targets --offline
-cargo package --allow-dirty --no-verify --list --offline
+cd roplat_behavior
+cargo check -p roplat_behavior --all-targets --offline
+cargo check -p roplat_behavior --features roplat --all-targets --offline
+cargo package -p roplat_behavior --allow-dirty --no-verify --list --offline
 ```
 
 Use finite mock and pure-data tests before any device run. Do not run GUI demonstrations, ignored unbounded tests or SDK bring-up as routine verification. Check build-script asset writes separately. Use real-robot runs only when explicitly requested and physically safe; report exactly which features/platforms were tested.

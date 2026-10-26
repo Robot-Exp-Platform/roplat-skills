@@ -1,11 +1,15 @@
 ---
 name: robot-behavior
-description: 使用或实现 robot_behavior 机器人驱动：在应用中调用已有驱动（Franka、JAKA、Hans、AUBO、rsbullet 等）的运动、控制、状态与模型能力，或为新机器人实现/审查驱动 trait 与 roplat 适配。与 roplat-development 配合组图；不用于自行操作真实机器人。
+description: 使用或实现 roplat_behavior 机器人驱动：在应用中调用已有驱动（Franka、JAKA、Hans、AUBO、rsbullet 等）的运动、控制、状态与模型能力，或为新机器人实现/审查驱动 trait 与 roplat 适配。与 roplat-development 配合组图；不用于自行操作真实机器人。
 ---
 
-# robot_behavior 驱动能力
+# roplat_behavior 驱动能力
 
-robot_behavior 用类型化的能力 trait 描述机器人能做什么：`Robot`（生命周期与原生状态）、`MoveTo<S>`/`MoveTraj<S>`（运动空间）、`ControlWith<S>`/`AsyncControlWith<S>`（控制通道）、模型映射与状态视图。roplat 适配在默认关闭的 `roplat` feature 下。先核对用户依赖的 robot_behavior 与 roplat 版本：本技能对应 robot_behavior `0.8.1` 与 roplat `0.5.1`（见 [version.json](references/version.json)），两者都已发布到 crates.io；robot_behavior 使用 nightly 特性（`async_trait_bounds`、`generic_const_exprs`），需要 nightly 工具链。
+roplat_behavior 用类型化能力 trait 描述机器人能做什么：`Robot`、`MoveTo<S>` / `MoveTraj<S>`、`ControlWith<S>` / `AsyncControlWith<S>`、模型映射与状态视图。roplat 适配由默认关闭的 `roplat` feature 启用。
+
+本 `next` 分支对应源码 `roplat_behavior 0.9`，先核对项目 manifest、锁文件、源码提交与 [version.json](references/version.json)。技能目录名 `robot-behavior` 保留以兼容既有链接。0.9 项目先读[迁移与依赖路径](references/migration-0.9.md)；截至 2026-10-26，四个行为/算法包与消息包尚未发布，必须使用匹配源码。已发布 `robot_behavior 0.8.1` / `roplat 0.5.1` 项目使用 [`main` 技能](https://github.com/Robot-Exp-Platform/roplat-skills/tree/main)，不要直接套用本分支的新采样 API。
+
+0.9 的契约包仍需 nightly（`async_trait_bounds`）；`generic_const_exprs` 已移到 `roplat_kinematics`。控制器、运动学和轨迹分别来自 `roplat_control`、`roplat_kinematics`、`roplat_trajectory`，不再从契约包导入。
 
 ## 按意图选择
 
@@ -26,8 +30,8 @@ robot_behavior 用类型化的能力 trait 描述机器人能做什么：`Robot`
 
 ## 必须遵守
 
-- 应用优先导入 `robot_behavior::behavior::*`（根路径导入如 `robot_behavior::JointPositionControl` 同样可用），驱动实现导入 `robot_behavior::driver::*`。
+- 应用优先导入 `roplat_behavior::behavior::*`（根路径导入如 `roplat_behavior::JointPositionControl` 同样可用），驱动实现导入 `roplat_behavior::driver::*`。
 - `Continue((command, done))` 发送有效指令；`Break(())` 不带算法指令，由驱动执行协议收尾。不要编造零指令填补失败或停止的周期，`Break` 也不是急停。
 - 驱动不支持的能力返回明确错误，不静默改用其他运动模式。
 - 编译、mock 或仿真通过不等于真机验证。技能不授权运行真机示例、上传数据或发布代码；运行连接设备的程序需要用户明确要求且环境安全。
-- 源码与本技能冲突时，以用户实际依赖的 robot_behavior 源码（crates.io 包或本地检出）及其 crate 文档为准。
+- 源码与本技能冲突时，以用户实际依赖的 roplat_behavior 源码（crates.io 包或本地检出）及其 crate 文档为准。

@@ -5,21 +5,22 @@
 | 技能 | 用途 | 入口 |
 |---|---|---|
 | roplat-development | 用 Node / Rhythm / System 编写和修改 roplat 应用，重点教授设计哲学到写法：节律分层、设备控制节律、资源借出、旁路、生命周期与执行结果 | [SKILL.md](skills/roplat-development/SKILL.md) |
-| robot-behavior | 使用或实现 robot_behavior 驱动：类型化运动/控制能力、控制会话契约、原生异步会话与 roplat 适配 | [SKILL.md](skills/robot-behavior/SKILL.md) |
+| robot-behavior | 使用或实现 roplat_behavior 驱动，并区分旧 robot_behavior 发布包：类型化能力、会话契约、原生异步与 roplat 适配 | [SKILL.md](skills/robot-behavior/SKILL.md) |
 
-当前技能对应 crates.io 上的 roplat `0.5.1` 与 robot_behavior `0.8.1`（robot_behavior 需要 nightly 工具链），见 [compatibility.json](compatibility.json)。两者仍在快速迭代，API 不稳定。技能与例程自成一体，框架与行为库从 crates.io 解析，不需要访问它们的源码仓库。
+本分支是 **`next` 开发线**，技能正文和三个活动例程对应当前源码 `roplat_behavior 0.9` 与核心固定提交，见 [compatibility.json](compatibility.json)。`roplat_behavior` 已拆为四个包并采用 `roplat_msgs`；截至 2026-10-26 尚未发布，不能用版本号相同的 registry 包代替。
 
-`main` 维护已发布版本；跟随源码开发的技能见 [next 分支](https://github.com/Robot-Exp-Platform/roplat-skills/tree/next)。上游能力正式发布后，将对应例程改为 crates.io 依赖、更新锁文件并复验运行与严格 Clippy，通过后再将相应技能更新推广到 `main`。
+已发布依赖的自包含技能在 [`main`](https://github.com/Robot-Exp-Platform/roplat-skills/tree/main)。通用修复先维护 `main` 再合入 `next`；新 API 发布后，将开发线依赖改为实际发布包、更新锁文件并重新运行验证，才能推广到 `main`。两个分支的兼容性声明与验收记录分别维护，不能以“版本号一样”或“开发例程通过”替代发布验收。旧项目迁移见[迁移表](skills/robot-behavior/references/migration-0.9.md)。
 
 ## 使用与验证
 
-让 AI 阅读上述入口，并提供你的需求、项目位置和使用的版本。涉及多层节律时，入口会引导读取边界说明与可运行范例。验证技能自带的例程（需要 Python 3.11 及以上与 Rust nightly）：
+让 AI 阅读上述入口，提供项目需求和源码位置。需要 Python 3.11 及以上与 Rust nightly；两个路径参数都是仓库根，行为 crate 实际在其同名子目录中：
 
 ```sh
-python3 skills/roplat-development/scripts/verify_examples.py --offline
+python3 skills/roplat-development/scripts/verify_examples.py \
+  --roplat /path/to/roplat --behavior /path/to/roplat_behavior --offline
 ```
 
-每个例程是依赖 crates.io 包、自带锁文件的独立 Cargo 项目；脚本把它们复制到临时目录，执行 `cargo run --locked` 与严格 Clippy，不连接机器人，最后打印证据目录。没有本地依赖缓存时去掉 `--offline`。例程通过不代表所有硬件或跨语言路径通过。
+默认源码模式运行 `control_layers`、`robot_apps` 和 `behavior_current`；把例程复制到临时目录，在应用根 patch 六个包，核验 Cargo 实际选用路径，执行运行断言与严格 Clippy，记录提交、dirty 状态和解析版本。没有缓存时去掉 `--offline`；`--only robot_apps` 可只运行机器人例程。所有例程均有界且不连接机器人；通过不代表硬件、后端模型加载、跨语言、录放或实时性能已验证。
 
 ## 集合扩展原则
 
@@ -29,7 +30,7 @@ python3 skills/roplat-development/scripts/verify_examples.py --offline
 
 ## 使用验收记录
 
-2026-10-26：发布版更新到 roplat 0.5.1 与 robot_behavior 0.8.1；两个例程使用 registry 依赖及锁文件运行，并通过严格 Clippy。验证器增加 UTF-8 日志处理和实际 patch 来源核查，未采用或未被例程使用的显式 patch 会失败，见[本轮发布版验证](evaluations/results/20261026/published-validation.json)。源码开发版由 `next` 分支单独维护。
+2026-10-26：按 `main` 发布线 / `next` 开发线分离维护。`next` 的 robot_apps 已整体迁到 roplat_behavior 0.9，包括原有六种应用结构；behavior_current 验证拆包、Pose/采样访问器、DH 映射和模型选择。当前源码基线为核心 `78fd47e`、行为库 `ef95abc`，本分支验收见[开发线验证](evaluations/results/20261026/development-validation.json)。前序混合审计记录保留为历史，不代替本分支验证。未进行真机或外语运行验收。
 
 2026-10-22（续）：例程改为直接依赖 crates.io 上的 roplat 0.5.0 与 robot_behavior 0.8.0，验证脚本不再需要任何源码仓库；技能文字去掉对核心仓库文档与测试的引用，补齐内置节律、事件与信号、图内 `if` 与守卫、闭包节点的说明。robot_apps 新增两个场景：`plan_hard`（规划放进 hard 节律，控制环最长周期间隔断言；去掉 `.hard()` 后断言失败）与 `task_events`（操作员线程经事件通道发指令，守卫、图内 `if`、`retry` 与信号）。两个例程在 `--locked --offline` 下运行与严格 Clippy 通过，robot_apps 连续运行 10 次稳定，见[复验记录](evaluations/results/20261022/self-contained-validation.json)。
 

@@ -3,9 +3,9 @@
 
 use std::time::Duration;
 
-use robot_behavior::JointState;
 use roplat::comm::{Publisher, Subscriber};
 use roplat::{Lifecycle, Node, RoplatError};
+use roplat_behavior::JointState;
 
 use crate::sim::{DOF, Joints};
 
@@ -13,7 +13,7 @@ use crate::sim::{DOF, Joints};
 pub type Reference = (Joints, bool);
 
 fn measured(state: &JointState<DOF>) -> Joints {
-    state.meas.q.unwrap_or([0.0; DOF])
+    state.meas.q().unwrap_or([0.0; DOF])
 }
 
 /// Minimum-jerk reference from the first observed position to `goal`.

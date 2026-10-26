@@ -1,0 +1,281 @@
+{
+  "date": "2026-10-26",
+  "device": "uuid:d2ed98d7-ffb2-43e8-a764-d9779ba7ea15",
+  "user": "yixing",
+  "coordinator": "codex/session-codex-skills-20261026-01",
+  "skills_base": "3ce217d895880756ae41f244ee242ca60fe33602",
+  "skills_branch": "codex/skills-current-api-20261026",
+  "published_validation": {
+    "profile": "published",
+    "patches": {},
+    "sources": {},
+    "examples": {
+      "control_layers": {
+        "toolchain": "rustc 1.99.0-nightly (c4af71034 2026-07-06)",
+        "results": [
+          {
+            "example": "control_layers",
+            "step": "run",
+            "command": [
+              "cargo",
+              "run",
+              "--locked"
+            ],
+            "returncode": 0
+          },
+          {
+            "example": "control_layers",
+            "step": "clippy",
+            "command": [
+              "cargo",
+              "clippy",
+              "--locked",
+              "--",
+              "-D",
+              "warnings"
+            ],
+            "returncode": 0
+          }
+        ],
+        "resolved": {
+          "roplat": {
+            "version": "0.5.1",
+            "source": "registry+https://github.com/rust-lang/crates.io-index"
+          }
+        }
+      },
+      "robot_apps": {
+        "toolchain": "rustc 1.99.0-nightly (c4af71034 2026-07-06)",
+        "results": [
+          {
+            "example": "robot_apps",
+            "step": "run",
+            "command": [
+              "cargo",
+              "run",
+              "--locked"
+            ],
+            "returncode": 0
+          },
+          {
+            "example": "robot_apps",
+            "step": "clippy",
+            "command": [
+              "cargo",
+              "clippy",
+              "--locked",
+              "--",
+              "-D",
+              "warnings"
+            ],
+            "returncode": 0
+          }
+        ],
+        "resolved": {
+          "robot_behavior": {
+            "version": "0.8.1",
+            "source": "registry+https://github.com/rust-lang/crates.io-index"
+          },
+          "roplat": {
+            "version": "0.5.1",
+            "source": "registry+https://github.com/rust-lang/crates.io-index"
+          }
+        }
+      }
+    }
+  },
+  "current_validation": {
+    "profile": "current",
+    "patches": {
+      "roplat": "E:\\yixing\\code\\Robot-Exp\\roplat\\roplat",
+      "roplat_msgs": "E:\\yixing\\code\\Robot-Exp\\roplat\\roplat_msgs",
+      "roplat_behavior": "E:\\yixing\\code\\Robot-Exp\\.work\\mainline-20261026\\roplat_behavior\\roplat_behavior",
+      "roplat_kinematics": "E:\\yixing\\code\\Robot-Exp\\.work\\mainline-20261026\\roplat_behavior\\roplat_kinematics",
+      "roplat_control": "E:\\yixing\\code\\Robot-Exp\\.work\\mainline-20261026\\roplat_behavior\\roplat_control",
+      "roplat_trajectory": "E:\\yixing\\code\\Robot-Exp\\.work\\mainline-20261026\\roplat_behavior\\roplat_trajectory"
+    },
+    "sources": {
+      "roplat": {
+        "path": "E:\\yixing\\code\\Robot-Exp\\roplat\\roplat",
+        "commit": "78fd47ee0a90194feb88f706ca90d6d584331de8",
+        "status": [
+          "?? cmake-gen/"
+        ]
+      },
+      "roplat_msgs": {
+        "path": "E:\\yixing\\code\\Robot-Exp\\roplat\\roplat_msgs",
+        "commit": "78fd47ee0a90194feb88f706ca90d6d584331de8",
+        "status": [
+          "?? cmake-gen/"
+        ]
+      },
+      "roplat_behavior": {
+        "path": "E:\\yixing\\code\\Robot-Exp\\.work\\mainline-20261026\\roplat_behavior\\roplat_behavior",
+        "commit": "ef95abc825fe882221b9b7205c81f92ee6509f9a",
+        "status": []
+      },
+      "roplat_kinematics": {
+        "path": "E:\\yixing\\code\\Robot-Exp\\.work\\mainline-20261026\\roplat_behavior\\roplat_kinematics",
+        "commit": "ef95abc825fe882221b9b7205c81f92ee6509f9a",
+        "status": []
+      },
+      "roplat_control": {
+        "path": "E:\\yixing\\code\\Robot-Exp\\.work\\mainline-20261026\\roplat_behavior\\roplat_control",
+        "commit": "ef95abc825fe882221b9b7205c81f92ee6509f9a",
+        "status": []
+      },
+      "roplat_trajectory": {
+        "path": "E:\\yixing\\code\\Robot-Exp\\.work\\mainline-20261026\\roplat_behavior\\roplat_trajectory",
+        "commit": "ef95abc825fe882221b9b7205c81f92ee6509f9a",
+        "status": []
+      }
+    },
+    "examples": {
+      "control_layers": {
+        "toolchain": "rustc 1.99.0-nightly (c4af71034 2026-07-06)",
+        "results": [
+          {
+            "example": "control_layers",
+            "step": "run",
+            "command": [
+              "cargo",
+              "run",
+              "--offline"
+            ],
+            "returncode": 0
+          },
+          {
+            "example": "control_layers",
+            "step": "clippy",
+            "command": [
+              "cargo",
+              "clippy",
+              "--offline",
+              "--",
+              "-D",
+              "warnings"
+            ],
+            "returncode": 0
+          }
+        ],
+        "used_patches": [
+          "roplat"
+        ],
+        "unused_patches": [
+          "roplat_behavior",
+          "roplat_control",
+          "roplat_kinematics",
+          "roplat_msgs",
+          "roplat_trajectory"
+        ],
+        "resolved": {
+          "roplat": {
+            "version": "0.5.1",
+            "source": "local path"
+          },
+          "roplat_native": {
+            "version": "0.5.1",
+            "source": "local path"
+          }
+        }
+      },
+      "behavior_current": {
+        "toolchain": "rustc 1.99.0-nightly (c4af71034 2026-07-06)",
+        "results": [
+          {
+            "example": "behavior_current",
+            "step": "run",
+            "command": [
+              "cargo",
+              "run",
+              "--offline"
+            ],
+            "returncode": 0
+          },
+          {
+            "example": "behavior_current",
+            "step": "clippy",
+            "command": [
+              "cargo",
+              "clippy",
+              "--offline",
+              "--",
+              "-D",
+              "warnings"
+            ],
+            "returncode": 0
+          }
+        ],
+        "used_patches": [
+          "roplat",
+          "roplat_msgs",
+          "roplat_behavior",
+          "roplat_kinematics",
+          "roplat_control",
+          "roplat_trajectory"
+        ],
+        "unused_patches": [],
+        "resolved": {
+          "roplat": {
+            "version": "0.5.1",
+            "source": "local path"
+          },
+          "roplat_behavior": {
+            "version": "0.9.0",
+            "source": "local path"
+          },
+          "roplat_control": {
+            "version": "0.9.0",
+            "source": "local path"
+          },
+          "roplat_kinematics": {
+            "version": "0.9.0",
+            "source": "local path"
+          },
+          "roplat_msgs": {
+            "version": "0.5.1",
+            "source": "local path"
+          },
+          "roplat_native": {
+            "version": "0.5.1",
+            "source": "local path"
+          },
+          "roplat_trajectory": {
+            "version": "0.9.0",
+            "source": "local path"
+          }
+        }
+      }
+    }
+  },
+  "raw_evidence_workspaces": {
+    "published": "C:\\Users\\yanji\\AppData\\Local\\Temp\\roplat-skill-example-zcl8nk41",
+    "current": "C:\\Users\\yanji\\AppData\\Local\\Temp\\roplat-skill-example-u_jrnghj"
+  },
+  "review": {
+    "core_audit": "core-audit.json",
+    "behavior_paths": "core_audit independently reviewed the new migration docs and API usage; runtime builds caught and fixed a missing Joints impl in the new mock.",
+    "final_semantic_review": {
+      "reviewer": "core_audit",
+      "result": "passed",
+      "task_sha256": "17a5b22c3fdd9073768d15cde9d13606be76dc03d693a90f49943f70a958b2e7",
+      "operation_c01_c02_sha256": "94bdc857a1557be99c2c5dbf61092a13392d2ba18055b43c7e47f8b1c8b35567"
+    },
+    "additional_documentation": "SimulationRhythm source contract checked against ef95abc; physical backend execution remains untested."
+  },
+  "source_guard": "source-selection-negative.json",
+  "registry_check": "registry-check.json",
+  "repairs": [
+    "Migrate active behavior guidance to 0.9 split crates, Pose/sample accessors, DH macro and sibling repository paths.",
+    "Update published manifests/locks to roplat 0.5.1 and robot_behavior 0.8.1.",
+    "Distinguish published and source-only messages/recording/Python bridge APIs.",
+    "Decode Cargo output as UTF-8 on Windows; verify actual Cargo patch selection before claiming source validation."
+  ],
+  "limits": "Finite mock/pure-data examples plus run and strict Clippy. No hardware, GUI, backend model load, recording/replay, foreign-language runtime or real-time acceptance.",
+  "history": "Previous evaluations/provenance.json and 202609-20261022 evidence retained unchanged.",
+  "contributions": {
+    "root": "Behavior migration, examples, source profiles, source guard, builds and final integration.",
+    "core_audit": "Core syntax/API audit, communication reference, official crate provenance and independent review.",
+    "entry_check": "Related Git fetch/fast-forwards; nested sync_inventory verified preserved state."
+  }
+}

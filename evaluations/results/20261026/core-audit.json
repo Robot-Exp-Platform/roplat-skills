@@ -1,0 +1,107 @@
+{
+  "observed_on": "2026-10-26",
+  "user": "yixing",
+  "agent": "core_audit",
+  "scope": "Core public DSL/API/package paths against roplat-skills origin/main; communication reference correction only",
+  "device": "uuid:d2ed98d7-ffb2-43e8-a764-d9779ba7ea15",
+  "skills_baseline": "3ce217d895880756ae41f244ee242ca60fe33602",
+  "core_main": "78fd47ee0a90194feb88f706ca90d6d584331de8",
+  "core_published_051": "cfee536c79c4760ae7579367e27a8dd8bd3221f4",
+  "published_provenance": "published-crate-provenance.json",
+  "published_source_comparison": "published-source-comparison.json",
+  "dsl_comparison": {
+    "paths": [
+      "docs/system-syntax.md",
+      "roplat/src/node.rs",
+      "roplat/src/rhythm.rs",
+      "roplat/src/lifecycle.rs",
+      "roplat/src/error.rs",
+      "roplat_system/src/system_v3/parser.rs",
+      "roplat_system/src/system/attributes.rs"
+    ],
+    "changed_paths": [],
+    "conclusion": "No change in the selected public DSL and Node/Rhythm/Lifecycle/Error contract files. Scheduler code changes do not introduce new source syntax; existing resource, hard rhythm, event, ownership and lifecycle guidance remains applicable."
+  },
+  "findings": [
+    {
+      "id": "core-01",
+      "kind": "release-baseline",
+      "summary": "Skill references/manifests/locks still identify roplat 0.5.0; published 0.5.1 is newer. Main also labels itself 0.5.1 while containing unpublished APIs, so package version alone cannot identify the source.",
+      "evidence": [
+        "CHANGELOG.md:3",
+        "CHANGELOG.md:58",
+        "roplat/Cargo.toml:3"
+      ],
+      "resolution": "Root updates the published baseline; communication reference now distinguishes release and fixed main SHA."
+    },
+    {
+      "id": "core-02",
+      "kind": "package-path",
+      "summary": "Runtime-free roplat_native and shared roplat_msgs missing from guidance. Original roplat paths are re-exported, so existing imports must not be blindly rewritten. Message-only crates need the roplat_native alias for generated macro paths.",
+      "evidence": [
+        "roplat_native/src/lib.rs:1",
+        "roplat_msgs/src/lib.rs:1",
+        "roplat/src/lib.rs:34",
+        "roplat/src/type_binding.rs:10"
+      ],
+      "resolution": "communication-and-languages.md:38"
+    },
+    {
+      "id": "core-03",
+      "kind": "python-boundary",
+      "summary": "Old text says layout cache lasts one activation. Main uses a process cache keyed by class and native layout, buffer-protocol copies and deduplicated sys.path insertion; publish 0.5.1 still has activation-local layout checks.",
+      "evidence": [
+        "roplat_py/src/native_bridge.rs:46",
+        "roplat_py/src/native_bridge.rs:118",
+        "roplat_py/src/native_bridge.rs:154",
+        "roplat_macros/src/puppet.rs:481"
+      ],
+      "resolution": "communication-and-languages.md:56"
+    },
+    {
+      "id": "core-04",
+      "kind": "breaking-api",
+      "summary": "Main recording requires RecordData and schema metadata; constructors/wrappers return Result; explicit finish is required and RLOG v4 does not accept v3/JSON-lines. New streaming, causal and media capabilities were unmentioned.",
+      "evidence": [
+        "roplat/src/rhythm/replay/data.rs:12",
+        "roplat/src/rhythm/replay/recording.rs:21",
+        "roplat/src/rhythm/replay/session.rs:113",
+        "roplat/src/rhythm/replay/session.rs:161",
+        "roplat/src/rhythm/replay/session.rs:235",
+        "docs/recording-foundation.md:3"
+      ],
+      "resolution": "communication-and-languages.md:74"
+    },
+    {
+      "id": "core-05",
+      "kind": "communication-api",
+      "summary": "Main adds MPSC/broadcast/variable IPC; TcpOptions literals need additional fields/default extension, full-queue defaults changed to Error, typed same-host transport tries shared memory, latest publish uses sender-side replacement.",
+      "evidence": [
+        "roplat/src/comm/mod.rs:9",
+        "roplat/src/comm/ipc/ring_buffer.rs:77",
+        "roplat/src/comm/ipc/transport.rs",
+        "docs/stream-transport.md:104"
+      ],
+      "resolution": "communication-and-languages.md:46"
+    },
+    {
+      "id": "core-06",
+      "kind": "validation-scope",
+      "summary": "Existing skill examples do not run Recording/Replay, IPC, media or foreign-language bindings; the documentation changes are source-reviewed, not runtime validation of those capabilities.",
+      "resolution": "Explicit source/runtime boundary retained at communication-and-languages.md:84"
+    }
+  ],
+  "edited_files": [
+    "skills/roplat-development/references/communication-and-languages.md"
+  ],
+  "checks": {
+    "git_diff_check": "passed (line-ending warnings from other concurrent edits only)",
+    "runtime_tests": "not run by this agent; root owns example builds",
+    "release_archive_validation": "roplat 0.5.1 archive 54 source files match cited Git commit; robot_behavior 0.8.1 differs from 0.8.0 only by rename documentation in src/lib.rs"
+  },
+  "remaining_work_for_root": [
+    "Update shared version metadata/readme/manifests and preserve historical evidence",
+    "Validate published examples and current behavior source example",
+    "Integrate behavior-library audit separately"
+  ]
+}

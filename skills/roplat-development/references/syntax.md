@@ -1,6 +1,6 @@
 # 推荐的真实 System 语法
 
-本文是 roplat 0.5 System 写法的完整参考，片段可组合，节点名不是关键字。类型与函数签名查 crate 文档（docs.rs 上的 roplat 0.5.1，或在项目里 `cargo doc --open`）；可运行的完整程序在本技能的 [assets](../assets/)。
+本文说明 roplat 0.5 System 的共同写法，片段可组合，节点名不是关键字。`next` 的类型与函数签名以 [version.json](version.json) 指定源码及该项目的 `cargo doc --open` 为准；docs.rs 的 0.5.1 文档对应发布包，不包含全部开发接口。可运行程序在本技能的 [assets](../assets/)。
 
 ## 入口与基本图
 
@@ -52,7 +52,7 @@ control.outcome >> record;      // Execution<()>，可直接处理本次会话�
 - 相同条件的重复 match 会合并为一次图调用；在两次 match 之间插入的同一资源使用须与合并后的 match 建立依赖，否则按无依赖使用报错。应把相关使用放入同一个域，或用独立命名的 match 表达不同调用。
 - 资源留在拥有状态里，业务 Input/Output 不携带它。删除的 `ResourceSlot`、`reclaim_input` 和 `user >> &mut arm` 不应出现在新程序中。
 - 同一资源的任意两个使用之间写出数据或 `.trigger` 依赖（如 `reach >> settle.trigger;`）。使用只按依赖（含传递）排序，与绑定书写顺序无关；无依赖的两个使用编译报错，节律结果用 `.outcome` 处理时写 `child.outcome >> next.trigger;`。独立资源按图依赖并发。业务错误 `motion?` 与资源借用无关，不需要“归还后再检查”。借用允许正常 Rust 本体替换，不承诺对象身份不变。
-- roplat 0.5.1 中，业务检查与触发边分开写为 `motion?; motion >> control.trigger;`。不要合并成 `motion? >> control.trigger;`：该写法在失败验证中没有传播业务错误，后续控制仍会执行。
+- 业务检查与触发边分开写为 `motion?; motion >> control.trigger;`。crates.io 发布版 roplat 0.5.1（来源 `cfee536c79c4760ae7579367e27a8dd8bd3221f4`）的失败验证中，合并写法 `motion? >> control.trigger;` 没有传播业务错误，后续控制仍会执行。`next` 也采用分写；这一发布版负例不证明核心源码 `78fd47e` 的组合写法具有相同行为。
 - 本层创建的资源由本层 Lifecycle 启停；参数由调用方管理。内层域可借用外层资源；尾段可调用资源方法。外部按值传入、由调用方管理的资源可 `Ok(arm)` 返回；本层创建并由 Lifecycle 管理的资源需留下执行关闭钩子，尾段返回业务状态快照，不能提前移走本体。节律持有资源期间，其周期域不能同时使用同一资源。
 - Rhythm 的 `.outcome` 可直接隔离该 drive 的失败；要把一组节点作为一段隔离，用 `once()` 子域，逐段收集业务结果用 `into_collect_rhythm()`（见内置节律）。仅在后续任务独立于失败段时继续。
 - Node 业务错误用业务错误类型加 `Into<RoplatError>`，或 `RoplatError::NodeProcessing(..)`；设备 `RobotException` 已有转换。

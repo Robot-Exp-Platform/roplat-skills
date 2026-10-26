@@ -3,10 +3,10 @@
 //! resource: each task borrows it for the control session without moving it
 //! into business Input or Output.
 
-use robot_behavior::JointPositionControl;
-use robot_behavior::roplat::AsyncControlRhythm;
 use roplat::RoplatResult;
 use roplat::rhythm::IntoRhythm;
+use roplat_behavior::JointPositionControl;
+use roplat_behavior::roplat::AsyncControlRhythm;
 
 use crate::SEGMENT;
 use crate::nodes::{JointServo, MinJerk};

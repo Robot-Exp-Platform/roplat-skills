@@ -2,10 +2,10 @@
 //! place is lifecycle: this System connects the arm before the first task and
 //! disconnects it after the last, even if a task fails.
 
-use robot_behavior::JointPositionControl;
-use robot_behavior::roplat::AsyncControlRhythm;
 use roplat::RoplatResult;
 use roplat::rhythm::IntoRhythm;
+use roplat_behavior::JointPositionControl;
+use roplat_behavior::roplat::AsyncControlRhythm;
 
 use crate::nodes::{JointServo, MinJerk};
 use crate::sim::{DOF, Joints, SimArm};

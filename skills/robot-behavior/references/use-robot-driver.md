@@ -1,6 +1,6 @@
 # 使用已有驱动（use-robot-driver）
 
-Use an existing driver compatible with published `robot_behavior` 0.8.1 without leaking driver implementation concerns into application code. Paths beginning with `robot_behavior/` refer to that dependency's package root, not an unreleased source checkout.
+Use an existing `roplat_behavior` driver without leaking driver implementation concerns into application code.
 
 Read the shared [API and semantics reference](robot-behavior-overview.md) first. Then inspect the target driver's examples and trait impls before writing code. For Roplat applications, also use the sibling [roplat-development](../../roplat-development/SKILL.md) skill; this device capability guide does not define the graph DSL.
 
@@ -15,7 +15,7 @@ Use this skill for:
 - running bounded realtime control sessions
 - using reusable controller closures
 - reading state, logging control observations, or querying model maps
-- organizing driver examples according to `robot_behavior/EXAMPLES.md`
+- organizing driver examples according to `roplat_behavior/EXAMPLES.md`
 
 Do not use this guide to implement driver trait impls. Switch to [implement-robot-driver](implement-robot-driver.md).
 
@@ -24,12 +24,12 @@ Do not use this guide to implement driver trait impls. Switch to [implement-robo
 Prefer:
 
 ```rust
-use robot_behavior::behavior::*;
+use roplat_behavior::behavior::*;
 ```
 
-Only import concrete driver types for connection and vendor-native APIs. Avoid `robot_behavior::driver::*` in application examples; it is for implementors and can create method ambiguity.
+Only import concrete driver types for connection and vendor-native APIs. Avoid `roplat_behavior::driver::*` in application examples; it is for implementors and can create method ambiguity.
 
-`RobotResult` and `RobotException` are root exports, not included in these glob imports. Import the ones your implementation uses explicitly with `use robot_behavior::{RobotException, RobotResult};`.
+`RobotResult` and `RobotException` are root exports, not included in these glob imports. Import the ones your implementation uses explicitly with `use roplat_behavior::{RobotException, RobotResult};`.
 
 ## Lifecycle Pattern
 
@@ -108,7 +108,7 @@ For COPP-backed position commands, use:
 
 ```rust
 let controller =
-    robot_behavior::utils::trajectory::copp_waypoints_joint_position_control::<R, 7>(
+    roplat_trajectory::copp_waypoints_joint_position_control::<R, 7>(
         &waypoints,
         0.2,
     )?;
@@ -121,11 +121,11 @@ robot.control_with::<JointPositionControl<7>, _>(controller)?;
 
 ```rust
 use std::ops::ControlFlow;
-use robot_behavior::{Control, RobotResult, TorqueControl};
+use roplat_behavior::{Control, RobotResult, TorqueControl};
 
 fn finish_session<R>(robot: &mut R) -> RobotResult<()>
 where
-    R: robot_behavior::ControlWith<TorqueControl<7>>,
+    R: roplat_behavior::ControlWith<TorqueControl<7>>,
 {
     robot.control_with_flow::<TorqueControl<7>, _>(|_obs, _dt| {
         ControlFlow::Break(())
@@ -168,7 +168,7 @@ Channel selection:
 Import:
 
 ```rust
-use robot_behavior::controller::*;
+use roplat_control::*;
 ```
 
 Use controller helpers when you need closed-loop control, not normal point-to-point motion.
@@ -199,8 +199,8 @@ Use normalized arm state when available:
 
 ```rust
 let arm_state = robot.state()?;
-let q = arm_state.joint.meas.q;
-let flange = arm_state.flange.meas.pose;
+let q = arm_state.joint.meas.q();
+let flange = arm_state.flange.meas.pose();
 ```
 
 Use `ControlObservation` for full native state hooks:
@@ -238,9 +238,9 @@ Do not require model traits in an application if the task can be written with li
 
 ## Roplat Usage
 
-Enable `robot_behavior`'s `roplat` feature explicitly; it is off by default. Organize applications with `#[roplat::system]` and child rhythm domains, following [roplat-development](../../roplat-development/SKILL.md). Do not replace an application graph with a hand-written chain of `.process()` calls to bypass macro or ownership errors.
+Enable `roplat_behavior`'s `roplat` feature explicitly; it is off by default. Organize applications with `#[roplat::system]` and child rhythm domains, following [roplat-development](../../roplat-development/SKILL.md). Do not replace an application graph with a hand-written chain of `.process()` calls to bypass macro or ownership errors.
 
-The robot uses a dedicated borrowed **resource channel** (robot_behavior 0.8 / roplat 0.5):
+The robot uses a dedicated borrowed **resource channel** (roplat_behavior 0.9 / roplat 0.5.1):
 
 ```rust
 &mut robot >> motion.resources.0;
@@ -275,7 +275,7 @@ Do not assume simulator control semantics are identical to real robots just beca
 
 ## Example Checklist
 
-Follow `robot_behavior/EXAMPLES.md`:
+Follow `roplat_behavior/EXAMPLES.md`:
 
 - name examples like `02_00_move_joint_default.rs`, `04_02_control_torque.rs`, etc.
 - keep each example short and focused

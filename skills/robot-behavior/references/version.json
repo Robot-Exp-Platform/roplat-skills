@@ -1,9 +1,26 @@
 {
-  "robot_behavior_version": "0.8.1",
-  "roplat_version": "0.5.1",
-  "registry": "crates.io",
-  "toolchain": "nightly (robot_behavior uses async_trait_bounds and generic_const_exprs)",
-  "status": "published-release-validated",
-  "scope": "Resources=(R,) supplies a mutable robot borrow; MotionNode business Input is a target and Output is RobotResult<()>, control rhythms use unit Input/Output. Finite simulated examples do not validate hardware.",
-  "validation_evidence": "evaluations/results/20261026/published-validation.json"
+  "checked_on": "2026-10-26",
+  "status": "development-validated",
+  "current_source": {
+    "roplat_version": "0.5.1",
+    "roplat_behavior_version": "0.9.0",
+    "roplat_commit": "78fd47ee0a90194feb88f706ca90d6d584331de8",
+    "roplat_behavior_commit": "ef95abc825fe882221b9b7205c81f92ee6509f9a",
+    "unpublished_packages": [
+      "roplat_behavior",
+      "roplat_kinematics",
+      "roplat_control",
+      "roplat_trajectory",
+      "roplat_msgs",
+      "roplat_native"
+    ],
+    "profile": "current",
+    "source_paths_required": true,
+    "note": "Core main shares the published version number but includes later APIs. Preserve source identity."
+  },
+  "validation_evidence": "evaluations/results/20261026/development-validation.json",
+  "scope": "Finite mock/pure-data examples plus run and strict Clippy. No hardware, GUI, backend model load, recording/replay, foreign-language runtime or real-time acceptance.",
+  "toolchain": "nightly; async_trait_bounds in contracts, generic_const_exprs in roplat_kinematics",
+  "migration": "references/migration-0.9.md",
+  "branch": "next"
 }

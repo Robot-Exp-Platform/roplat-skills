@@ -1,10 +1,10 @@
 //! One rhythm layer: `MotionNode` replaces the control rhythm. The driver plans
 //! and executes each point-to-point motion; the application only orders goals.
 
-use robot_behavior::JointSpace;
-use robot_behavior::roplat::MotionNode;
 use roplat::RoplatResult;
 use roplat::rhythm::IntoRhythm;
+use roplat_behavior::JointSpace;
+use roplat_behavior::roplat::MotionNode;
 
 use crate::sim::{DOF, Joints, SimArm};
 

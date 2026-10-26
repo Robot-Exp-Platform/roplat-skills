@@ -1,30 +1,18 @@
-# robot_behavior 概念速查
+# roplat_behavior 概念速查
 
-这是 `use-robot-driver` 和 `implement-robot-driver` 共享的 robot_behavior 0.8.1 参考。下文的 `robot_behavior/` 表示用户实际依赖的 crates.io 包根目录（含 `EXAMPLES.md`），不要求克隆同名源码仓。需要查实现时，通过 `cargo metadata` 的 `manifest_path` 找到该版本，再按相关能力选读：
+这是 0.9 源码的能力与语义速查。0.8 项目先按 [迁移说明](migration-0.9.md) 区分旧 API。
 
-- `robot_behavior/src/lib.rs`
-- `robot_behavior/src/robot/mod.rs`
-- `robot_behavior/src/robot/motion.rs`
-- `robot_behavior/src/robot/control.rs`
-- `robot_behavior/src/robot/async_control.rs`
-- `robot_behavior/src/robot/observe.rs`
-- `robot_behavior/src/robot/state.rs`
-- `robot_behavior/src/robot/spaces.rs`
-- `robot_behavior/src/robot/arm.rs`
-- `robot_behavior/src/robot/category.rs`
-- `robot_behavior/src/robot/model.rs`
-- `robot_behavior/src/utils/controller/*`
-- `robot_behavior/src/utils/trajectory.rs`
+源码仓库为 `roplat_behavior`，契约 crate 在其 `roplat_behavior/` 子目录；控制器、运动学、轨迹分别在同仓的 `roplat_control/`、`roplat_kinematics/`、`roplat_trajectory/`。共享位姿和采样在同级核心仓库 `roplat/roplat_msgs/`。旧 `drives/robot_behavior` 位置不再是当前集成布局。
 
 ## 公开入口
 
-`robot_behavior/src/lib.rs` 暴露三个关键入口：
+`roplat_behavior/roplat_behavior/src/lib.rs` 暴露应用与驱动入口，控制器在独立包：
 
-- `robot_behavior::behavior::*`：应用用户入口。用于调用已有驱动。
-- `robot_behavior::driver::*`：驱动作者入口。额外导出 `MoveTo`、`MoveTraj`、`ControlWith` 等实现侧 trait。
-- `robot_behavior::controller::*`：控制器闭包生成函数入口。
+- `roplat_behavior::behavior::*`：应用用户入口。用于调用已有驱动。
+- `roplat_behavior::driver::*`：驱动作者入口。额外导出 `MoveTo`、`MoveTraj`、`ControlWith` 等实现侧 trait。
+- `roplat_control::*`：控制器闭包生成函数入口。
 
-应用示例不要随手 `use robot_behavior::driver::*`，否则容易把实现侧 trait 带入作用域并制造方法歧义。
+应用示例不要随手 `use roplat_behavior::driver::*`，否则容易把实现侧 trait 带入作用域并制造方法歧义。
 
 ## 根 trait 与能力束
 
@@ -70,9 +58,9 @@ pub struct StateView<T> {
 
 常用状态：
 
-- `JointSample<N>`：`q`、`dq`、`ddq`、`tau`、`dtau`，字段均为 `Option<[f64; N]>`。
+- `JointSample<N>`：固定布局与有效位掩码；用 `q()`、`dq()`、`ddq()`、`tau()`、`dtau()` 取得 `Option<[f64; N]>`。构造用 `JointSample::EMPTY.with_q(q).with_dq(dq)`，更新用 `set_q(Some(q))` / `set_q(None)`，不要直接读写旧 Option 字段。
 - `JointState<N> = StateView<JointSample<N>>`。
-- `SpatialSample`：`pose`、`vel`、`acc`、`wrench`。
+- `SpatialSample`：用 `pose()`、`twist()`、`accel()`、`wrench()` 读取有效值；构造用 `EMPTY.with_pose(pose).with_twist(array.into())`。`ContactSample` 用 `is_active()`、`force()`、`point()`、`normal()`；`LoadState` 字段为 `mass`、`center_of_mass`、`inertia`。
 - `BaseState = StateView<SpatialSample>`。
 - `EndEffectorState = StateView<SpatialSample>`。
 - `ArmState<N>`：
@@ -87,15 +75,9 @@ pub struct StateView<T> {
 
 ## Pose 与单位
 
-`Pose` 支持：
+`Pose` 是 `roplat_msgs` 的结构体，由契约包重新导出，字段为 `position: Vector3` 与 `orientation: Quaternion`（x, y, z, w）。使用 `Pose::from_euler`、`from_isometry`、`from_homo`、`from_axis_angle`、`from_position`，不再使用旧 enum 变体或模式匹配。访问器仍为 `euler()`、`quat()`、`quat_array()`、`homo()`、`axis_angle()`、`position()`。
 
-- `Euler([f64; 3], [f64; 3])`
-- `Quat(nalgebra::Isometry3<f64>)`
-- `Homo([f64; 16])`
-- `AxisAngle([f64; 3], [f64; 3], f64)`
-- `Position([f64; 3])`
-
-可通过 `euler()`、`quat()`、`quat_array()`、`homo()`、`axis_angle()`、`position()` 转换。
+`Twist` / `Wrench` 是消息结构体；需要旧 nalgebra 六维向量时使用 `roplat_kinematics::SpatialVec`。`JacobianModel::twist` 返回消息 `Twist`。
 
 边界单位约定：
 
@@ -209,7 +191,7 @@ observer 看完整 `Robot::State`，不是某个 `ControlSpace::Obs`。驱动负
 
 ## Controller 与轨迹工具
 
-`robot_behavior::controller::*` 导出闭包生成函数，不导出 controller 对象体系。
+`roplat_control::*` 导出闭包生成函数，不导出 controller 对象体系。
 
 常用函数：
 
@@ -219,7 +201,7 @@ observer 看完整 `Robot::State`，不是某个 `ControlSpace::Obs`。驱动负
 - Cartesian impedance：`cartesian_impedance_control`、`cartesian_traj_impedance_control`、`cartesian_impedance_tracking_control`、`cartesian_impedance_session`
 - dynamics：`gravity_compensation_control`、`computed_torque_control`、`computed_torque_tracking_control`
 
-`utils::path_generate` 生成 controller-compatible target source：
+`roplat_trajectory::path_generate` 生成 controller-compatible target source：
 
 - `constant_joint_target_fn`
 - `joint_traj_target_fn`
@@ -228,7 +210,7 @@ observer 看完整 `Robot::State`，不是某个 `ControlSpace::Obs`。驱动负
 - `pose_traj_target_fn`
 - `pose_path_target_fn`
 
-`utils::trajectory` 提供 COPP 规划和位置控制闭包：
+`roplat_trajectory` 提供 COPP 规划和位置控制闭包：
 
 - `plan_waypoints_traj_via_copp`
 - `plan_path_traj_via_copp`
@@ -256,8 +238,8 @@ trait SpaceMap<From, To> {
 - `InverseKinematics<N>`：`FlangeSpace -> JointSpace<N>`
 - `JacobianModel<N>`：`JointSpace<N> -> JacobianSpace<N>`
 - `DynamicsModel<N>`：质量矩阵、Coriolis/centrifugal、gravity 映射
-- `ArmForwardKinematics<N>`：基于 DH 的 FK helper
-- `ArmInverseKinematics<N>`：解析/迭代 IK helper
+- `roplat_kinematics::ArmForwardKinematics<N>`：基于 DH 的 FK helper
+- `roplat_kinematics::ArmInverseKinematics<N>`：解析/迭代 IK helper；用 `roplat_kinematics::dh_kinematics!(MyArm, N)`（或加 `inverse`）显式接入模型映射，旧 blanket impl 已移除
 
 没有可靠模型数据时不要实现假模型。
 
@@ -267,7 +249,7 @@ trait SpaceMap<From, To> {
 
 ## Roplat 适配
 
-`robot_behavior::roplat::*` 由默认关闭的 `roplat` feature 启用，设备 trait 与工具无需该 feature。
+`roplat_behavior::roplat::*` 由默认关闭的 `roplat` feature 启用，设备 trait 与工具无需该 feature。
 
 - `MotionNode<R, S>`：`Resources = (R,)`，`Input = S::Target`，`Output = RobotResult<()>`。
 - `SpaceMapNode<M, From, To>`：包装 `SpaceMap`。
@@ -286,7 +268,7 @@ Node / Rhythm / 资源的创建层负责启用与关闭；在 System 内创建�
 
 ## 示例清单
 
-`robot_behavior/EXAMPLES.md` 是驱动能力示例目录标准。重点分类：
+`roplat_behavior/EXAMPLES.md` 是驱动能力示例目录标准。重点分类：
 
 - 00 生命周期
 - 01 状态读取
@@ -303,3 +285,9 @@ Node / Rhythm / 资源的创建层负责启用与关闭；在 System 内创建�
 - 12 unsupported capability map
 
 一个驱动不需要实现所有示例，但支持的能力应该有短例程证明。
+
+## 仿真能力与模型路径
+
+`PhysicsEngine` 负责推进世界，`SimulationBackend` 声明加载器 ID 与支持格式；`RobotDescription::SIMULATION_MODELS` 提供 URDF / MJCF / SDF 声明。`select_simulation_model` 优先后端专用模型，再选通用格式，最后仅对接受 URDF 的后端使用旧 `URDF` 回退。选择只校验声明交集，不转换文件或证明动力学等价；相对模型路径由后端的搜索规则解析。已选模型加载失败应报错，不能静默换模型。
+
+开启 `roplat` feature 后，`roplat_behavior::roplat::SimulationRhythm::logical(engine).with_max_steps(n)` 拥有引擎，每个成功的 `step()` 后才向域发出 `()`；Input / Yield / Feed / Output / Resources 均为 `()`。`new(engine, interval)` 控制墙钟节奏，物理步长独立由 `engine.set_step_time(dt)` 设置。步数预算每次 drive 重置，世界状态不重置；引擎失败时该步不调用下游域。节律不自动 reset 或调用消耗引擎的 shutdown，后端用 RAII 清理，或在图外通过 `into_engine()` 显式收尾。具体后端的命令/状态刷新顺序及与真机的等价性仍须单独验证；本技能有限例程没有运行物理后端。

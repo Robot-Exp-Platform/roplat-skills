@@ -49,7 +49,7 @@ controller 由外层创建：外层一次 init，多个周期复用状态，结�
 
 如果把“永不结束”的 child drive 放在 outer 的依赖链里，outer 就不会越过它。需要独立推进的控制域，应在父图作为没有依赖边的兄弟域组织，并为它们定义合作式停止；不能靠嵌套无限循环实现并行。
 
-当前设计以实物机器人为准；仿真器闭环/加速语义尚待单独校订，不从 Iterator 或 SysTimer 推出通用仿真契约。
+当前源码的 `roplat_behavior::roplat::SimulationRhythm` 已提供世界步进节律，逻辑时间与墙钟节奏分开，详见[仿真能力](../../robot-behavior/references/robot-behavior-overview.md#仿真能力与模型路径)。具体后端的闭环、加速和真机等价性仍须分别验证，不从 Iterator 或 SysTimer 推导这些保证。
 
 ## 可执行证据
 

@@ -1,14 +1,11 @@
 #!/usr/bin/env python3
-"""Build, run and lint the skill's System examples in a temporary directory.
+"""Build, run and lint this next branch against explicit source repositories.
 
-Run control_layers and robot_apps with their published registry dependencies
-and --locked. No source repository is needed for the default validation.
-robot_behavior uses nightly features; robot_apps declares that in its
-rust-toolchain.toml, which applies because Cargo runs inside the copied project.
-
---patch NAME=PATH builds against a local source of a crate instead of the
-published one for maintainer diagnostics; this is not release validation. The pinned lockfile cannot
-hold then, so --locked is dropped and the evidence records the patches.
+Supply --roplat and --behavior repository roots. The current profile validates
+control_layers, robot_apps and behavior_current with local source patches.
+The main branch provides registry-only release examples with --locked.
+Source selection is checked through Cargo metadata before running examples.
+--patch NAME=PATH can override a source; ignored/incompatible patches fail.
 """
 import argparse
 import json
@@ -20,8 +17,9 @@ import sys
 import tempfile
 import tomllib
 
-TRACKED = ("roplat", "robot_behavior")
-EXAMPLES = ("control_layers", "robot_apps")
+TRACKED = ("roplat", "roplat_native", "robot_behavior", "roplat_behavior",
+           "roplat_msgs", "roplat_kinematics", "roplat_control", "roplat_trajectory")
+PROFILES = {"current": ("control_layers", "robot_apps", "behavior_current")}
 
 
 def toml_string(value):
@@ -107,8 +105,9 @@ def main():
             stream.reconfigure(encoding="utf-8", errors="backslashreplace")
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--offline", action="store_true", help="use only cached Cargo dependencies")
-    parser.add_argument("--profile", choices=("published",), default="published",
-                        help="validate the published examples (default)")
+    parser.add_argument("--profile", choices=PROFILES, default="current")
+    parser.add_argument("--roplat", type=Path, help="core repository root (current profile)")
+    parser.add_argument("--behavior", type=Path, help="roplat_behavior workspace root (current profile)")
     parser.add_argument("--only", action="append", default=[], metavar="EXAMPLE", help="check only this example (repeatable)")
     parser.add_argument(
         "--patch",
@@ -120,6 +119,12 @@ def main():
     args = parser.parse_args()
 
     patches = {}
+    if not args.roplat or not args.behavior:
+        parser.error("the next branch requires --roplat and --behavior repository roots")
+    patches.update({name: (args.roplat / name).expanduser().resolve()
+                    for name in ("roplat", "roplat_msgs")})
+    patches.update({name: (args.behavior / name).expanduser().resolve()
+                    for name in ("roplat_behavior", "roplat_kinematics", "roplat_control", "roplat_trajectory")})
     for item in args.patch:
         crate, separator, path = item.partition("=")
         source = Path(path).expanduser().resolve()
@@ -135,7 +140,7 @@ def main():
             parser.error(f"patch {crate!r} points to {package.get('name')!r}, not the expected crate: {source}")
 
     assets = Path(__file__).resolve().parents[1] / "assets"
-    examples = list(EXAMPLES)
+    examples = list(PROFILES[args.profile])
     unknown = set(args.only) - set(examples)
     if unknown:
         parser.error(f"unknown example(s) {sorted(unknown)}; available: {examples}")
@@ -161,6 +166,11 @@ def main():
             break
     used = {crate for summary in evidence["examples"].values() for crate in summary.get("used_patches", [])}
     required = {item.partition("=")[0] for item in args.patch}
+    required.add("roplat")
+    if "robot_apps" in examples:
+        required.update(("roplat_behavior", "roplat_msgs"))
+    if "behavior_current" in examples:
+        required.update(patches)
     unused = sorted(required - used)
     if not failed and unused:
         evidence["unvalidated_patches"] = unused

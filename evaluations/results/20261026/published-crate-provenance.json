@@ -1,0 +1,28 @@
+[
+  {
+    "crate": "roplat",
+    "version": "0.5.1",
+    "source": "https://static.crates.io/crates/roplat/roplat-0.5.1.crate",
+    "archive_sha256": "ec503192812f9c53212826e585a059bd27b4ee0e1d2ca0869e4688ce974da194",
+    "vcs_info": {
+      "git": {
+        "sha1": "cfee536c79c4760ae7579367e27a8dd8bd3221f4"
+      },
+      "path_in_vcs": "roplat"
+    },
+    "archive": "C:\\Users\\yanji\\Documents\\ChatGPT\\roplat\\work\\skills-audit-20261026\\roplat-0.5.1.crate"
+  },
+  {
+    "crate": "robot_behavior",
+    "version": "0.8.1",
+    "source": "https://static.crates.io/crates/robot_behavior/robot_behavior-0.8.1.crate",
+    "archive_sha256": "9e9611c57a30271c1748b8ed570f3e50f4acfe4546d900bc228f292284282f66",
+    "vcs_info": {
+      "git": {
+        "sha1": "7645ff21f6eded5d887f7a21885a4b94663c0bb8"
+      },
+      "path_in_vcs": ""
+    },
+    "archive": "C:\\Users\\yanji\\Documents\\ChatGPT\\roplat\\work\\skills-audit-20261026\\robot_behavior-0.8.1.crate"
+  }
+]

@@ -1,0 +1,15 @@
+{
+  "robot_behavior_080_to_081": {
+    "old_source_file_count": 47,
+    "new_source_file_count": 47,
+    "changed_source_paths": [
+      "src/lib.rs"
+    ],
+    "old_archive_sha256": "bc9a57ffd6018bb8b36c94ae80d20cf9a9cb78aa65bb8ae901f40fae3a8915df"
+  },
+  "roplat_051_archive_matches_vcs_source": {
+    "commit": "cfee536c79c4760ae7579367e27a8dd8bd3221f4",
+    "source_file_count": 54,
+    "different_source_paths": []
+  }
+}

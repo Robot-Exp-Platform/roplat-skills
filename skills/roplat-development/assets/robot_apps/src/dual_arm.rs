@@ -2,10 +2,10 @@
 //! its algorithm inside its own domain; they meet only through a latest-value
 //! sideband, never through a shared clock or a graph edge.
 
-use robot_behavior::JointPositionControl;
-use robot_behavior::roplat::AsyncControlRhythm;
 use roplat::RoplatResult;
 use roplat::comm::Latest;
+use roplat_behavior::JointPositionControl;
+use roplat_behavior::roplat::AsyncControlRhythm;
 
 use crate::SEGMENT;
 use crate::nodes::{JointServo, MinJerk, Mirror, Reference, Share};

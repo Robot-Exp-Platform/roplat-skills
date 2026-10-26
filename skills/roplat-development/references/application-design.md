@@ -1,6 +1,6 @@
 # 应用设计：从机器人任务到 System
 
-本篇讲“写成什么样”，语法细节见 [syntax.md](syntax.md)，语义边界见其余参考。完整可运行范例在 [robot_apps](../assets/robot_apps/src/)：仿真臂实现与真实驱动相同的 `robot_behavior` 能力 trait，换成真实驱动类型后应用文件不变。
+本篇讲“写成什么样”，语法细节见 [syntax.md](syntax.md)。完整范例 [robot_apps](../assets/robot_apps/src/) 使用当前 `roplat_behavior 0.9` 能力 trait，匹配这些能力与会话语义的真实驱动可复用其图结构。消息、算法拆包和采样写法另见 [behavior_current](../assets/behavior_current/src/main.rs) 及[迁移说明](../../robot-behavior/references/migration-0.9.md)。
 
 ## 1. 设计哲学如何落到代码
 
@@ -63,7 +63,7 @@ Ok(arm)
 
 ### 3.3 一层节律：用 MotionNode 代替控制层
 
-驱动已能完成点到点运动时，用 `robot_behavior::roplat::MotionNode` 代替内层节律（[sequence_motion.rs](../assets/robot_apps/src/sequence_motion.rs)）：
+驱动已能完成点到点运动时，用 `roplat_behavior::roplat::MotionNode` 代替内层节律（[sequence_motion.rs](../assets/robot_apps/src/sequence_motion.rs)）：
 
 ```rust
 tasks >> |goal| {

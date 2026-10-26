@@ -1,0 +1,37 @@
+{
+  "profile": "published",
+  "patches": {
+    "roplat": "C:\\Users\\yanji\\AppData\\Local\\Temp\\roplat-incompatible-patch-jw39b_3m"
+  },
+  "sources": {
+    "roplat": {
+      "path": "C:\\Users\\yanji\\AppData\\Local\\Temp\\roplat-incompatible-patch-jw39b_3m",
+      "commit": null,
+      "status": null
+    }
+  },
+  "examples": {
+    "control_layers": {
+      "results": [
+        {
+          "example": "control_layers",
+          "step": "source-selection",
+          "command": [
+            "cargo",
+            "metadata",
+            "--format-version",
+            "1",
+            "--offline"
+          ],
+          "returncode": 1,
+          "errors": [
+            "roplat: Cargo did not exclusively select requested source C:\\Users\\yanji\\AppData\\Local\\Temp\\roplat-incompatible-patch-jw39b_3m"
+          ]
+        }
+      ],
+      "used_patches": []
+    }
+  },
+  "test": "Cargo ignores an incompatible local roplat 0.4 patch; validator must reject registry fallback",
+  "passed": true
+}

@@ -16,11 +16,11 @@
 use std::ops::Range;
 use std::time::Duration;
 
-use robot_behavior::roplat::MotionNode;
-use robot_behavior::{JointSpace, Joints as JointLimits, RobotException, RobotResult};
 use roplat::comm::{Latest, Publisher, Subscriber};
 use roplat::rhythm::{EventRhythm, SignalRhythm, create_event_channel, create_signal};
 use roplat::{Lifecycle, Node, RoplatError, RoplatResult};
+use roplat_behavior::roplat::MotionNode;
+use roplat_behavior::{JointSpace, Joints as JointLimits, RobotException, RobotResult};
 
 use crate::sim::{DOF, Joints, SimArm};
 

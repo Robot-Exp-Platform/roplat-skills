@@ -5,7 +5,7 @@ description: 使用 roplat 的 Node、Rhythm 和 System 宏编写、修改或排
 
 # roplat 开发
 
-目标是写出**结构清楚、像机器人应用而非测试代码**的 roplat 程序：使用当前真实 API、保持静态图语义、可编译验证。先核对 [version.json](references/version.json) 与用户仓库版本；已有项目的依赖和当前源码优先，新项目依赖 crates.io 上的 `roplat = "0.5.1"`。不要用旧 RFC、历史性能原型或旧生成代码猜测语法。服务范围是应用组织（节点如何拆、节律如何分层、对象在哪创建、设备之间如何通信），不包括节点内部算法实现。
+目标是写出结构清楚、使用真实 API、可编译验证的 roplat 程序。本 `next` 分支面向当前源码组合：先核对 [version.json](references/version.json)、项目 manifest / 锁文件、源码提交与位置。活动机器人例程使用 `roplat_behavior 0.9`；拆包、采样及路径迁移见[迁移说明](../robot-behavior/references/migration-0.9.md)。核心源码与已发布包都标 0.5.1，但接口不同；发布项目应使用 [`main` 技能](https://github.com/Robot-Exp-Platform/roplat-skills/tree/main)。涉及消息、录制/重放及 Python 时读通信参考并核对来源。服务范围是应用组织，不包括节点内部算法实现。
 
 ## 设计哲学
 
@@ -19,7 +19,7 @@ description: 使用 roplat 的 Node、Rhythm 和 System 宏编写、修改或排
 ## 工作流
 
 1. 读 [application-design.md](references/application-design.md)，按其“设计步骤”列出设备与节拍、节律分层、节点职责、创建位置和跨域通信，再写代码。
-2. 对照 [robot_apps](assets/robot_apps/src/) 中最接近的场景：两层任务×控制（`sequence_control`）、一层运动节点（`sequence_motion`）、由 System 创建并启停设备（`sequence_owned`）、重计算放进 hard 节律而控制环不受影响（`plan_hard`）、操作员指令经事件通道驱动并带检查与重试（`task_events`）、多设备旁路（`dual_arm`）。驱动能力、控制会话与适配器契约见同仓 [robot-behavior](../robot-behavior/SKILL.md) 技能。
+2. 对照 [robot_apps](assets/robot_apps/src/) 中最接近的场景：两层任务×控制（`sequence_control`）、一层运动节点（`sequence_motion`）、由 System 创建并启停设备（`sequence_owned`）、重计算放进 hard 节律（`plan_hard`）、操作员事件、检查与重试（`task_events`）、多设备旁路（`dual_arm`）。拆包与采样迁移另见 [behavior_current](assets/behavior_current/src/main.rs) 和迁移说明；图组织与资源借用语法保持一致。驱动契约见同仓 [robot-behavior](../robot-behavior/SKILL.md) 技能。
 3. 按需查语义：语法 [syntax.md](references/syntax.md)；嵌套节律与 Input/Output/Yield/Feed [rhythm-domains.md](references/rhythm-domains.md)；生命周期、停止与错误 [execution-lifecycle.md](references/execution-lifecycle.md)；旁路与外语节点 [communication-and-languages.md](references/communication-and-languages.md)。
 4. 运行与验收：[validation.md](references/validation.md)。
 

@@ -3,11 +3,11 @@
 
 use std::{ops::ControlFlow, time::Duration};
 
-use robot_behavior::{
+use roplat::{Lifecycle, RoplatError, RoplatResult};
+use roplat_behavior::{
     AsyncControlCallback, AsyncControlWith, JointPositionControl, JointSample, JointSpace,
     JointState, Joints as JointLimits, MoveTo, Robot, RobotException, RobotResult,
 };
-use roplat::{Lifecycle, RoplatError, RoplatResult};
 
 pub const DOF: usize = 6;
 pub type Joints = [f64; DOF];
@@ -44,10 +44,7 @@ impl SimArm {
     }
 
     fn observe(&self) -> JointState<DOF> {
-        JointState::from_meas(JointSample {
-            q: Some(self.q),
-            ..Default::default()
-        })
+        JointState::from_meas(JointSample::EMPTY.with_q(self.q))
     }
 }
 

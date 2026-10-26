@@ -1,13 +1,13 @@
 # Native asynchronous control
 
-Published `robot_behavior` 0.8.1 provides `AsyncControlWith<S>` alongside `ControlWith<S>`. Check the driver's implementation against this dependency's crate documentation; a newer source checkout may use a different contract.
+The internal baseline adds `AsyncControlWith<S>` alongside the existing `ControlWith<S>`. Check the pinned source revision; published package version numbers alone do not identify this API.
 
 | Need | API | Execution contract |
 |---|---|---|
 | Synchronous motion | `move_to` | Blocks until completion/failure; ordinary driver path |
 | Existing async cycle callback | `control_with_async` / `control_with_flow_async` | Blocking session; per-cycle callback may await |
 | Session polled by caller | `AsyncControl::control_native_async::<S, _>(&mut callback).await` | Full session Future, including device I/O and termination |
-| Roplat graph with native async driver | `robot_behavior::roplat::AsyncControlRhythm<R, S>` | Awaits native session; keeps the same Yield/Feed/Input/Output and cooperative N-return contract |
+| Roplat graph with native async driver | `roplat_behavior::roplat::AsyncControlRhythm<R, S>` | Awaits native session; keeps the same Yield/Feed/Input/Output and cooperative N-return contract |
 
 Franka implements six native control channels using its existing Tokio UDP backend and asynchronous TCP session boundaries. Its native path requires an outer Tokio runtime with I/O and time enabled. Its old blocking async wrapper still creates a local runtime; do not place that wrapper directly inside a Tokio task. Synchronous move_to remains synchronous.
 
@@ -17,6 +17,6 @@ The robot still paces the cycle: receive state, execute one complete domain, sen
 
 Completed Feed is committed; a concurrent stop is observed at the next callback. A domain without a command returns Stopped/Err, producing Break and device-specific termination. Await the in-flight domain to regain N. Normal completion, cooperative stop and error preserve N. The robot is borrowed through `Resources = (R,)` for the entire drive, independently of business Output; dropped futures and panic do not promise asynchronous cleanup. Franka prevents reuse after an unconfirmed session rather than pretending the device stopped.
 
-Feature boundaries: basic drivers and native async behavior need no roplat feature. Enable `robot_behavior/roplat` for graph adapters and `rsbullet/roplat` for SimRhythm. Preserve independent manifests and depend on matching versions (roplat 0.5.1 and robot_behavior 0.8.1 are on crates.io; drivers that are not published keep their fixed Git revisions). When building against local checkouts, apply the source patches at the final workspace root. Cargo workspace inheritance is only for members of that workspace, not for independent driver repositories.
+Feature boundaries: basic drivers and native async behavior need no roplat feature. Enable `roplat_behavior/roplat` for graph adapters and `rsbullet/roplat` for SimRhythm. Preserve independent manifests and depend on matching versions (roplat 0.5.1 and legacy robot_behavior 0.8.1 are published; roplat_behavior 0.9 and roplat_msgs require the source patches described in [migration-0.9.md](migration-0.9.md)). When building against local checkouts, apply the source patches at the final workspace root. Cargo workspace inheritance is only for members of that workspace, not for independent driver repositories.
 
 Validate with finite mock and loopback tests: genuinely Pending I/O/callbacks, same-task sibling progress, nested System domains, errors/stops/N return, and sequential synchronous/asynchronous sessions. Separate CPU batch means from per-cycle latency percentiles and from hardware measurements.

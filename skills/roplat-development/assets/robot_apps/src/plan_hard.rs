@@ -7,11 +7,11 @@
 
 use std::time::{Duration, Instant};
 
-use robot_behavior::JointPositionControl;
-use robot_behavior::roplat::AsyncControlRhythm;
 use roplat::comm::Latest;
 use roplat::rhythm::{IntoHard, IntoRhythm, once};
 use roplat::{Lifecycle, Node, RoplatError, RoplatResult};
+use roplat_behavior::JointPositionControl;
+use roplat_behavior::roplat::AsyncControlRhythm;
 
 use crate::nodes::{JointServo, Mirror, Reference, Share};
 use crate::sim::{DOF, Joints, SimArm};

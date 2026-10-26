@@ -1,0 +1,54 @@
+[
+  {
+    "name": "roplat",
+    "status": 200,
+    "newest_version": "0.5.1",
+    "max_version": "0.5.1",
+    "source": "https://crates.io/api/v1/crates/roplat",
+    "observed_at": "2026-10-26T21:47:38.2900446+08:00"
+  },
+  {
+    "name": "robot_behavior",
+    "status": 200,
+    "newest_version": "0.8.1",
+    "max_version": "0.8.1",
+    "source": "https://crates.io/api/v1/crates/robot_behavior",
+    "observed_at": "2026-10-26T21:47:39.3003888+08:00"
+  },
+  {
+    "name": "roplat_behavior",
+    "status": 404,
+    "source": "https://crates.io/api/v1/crates/roplat_behavior",
+    "observed_at": "2026-10-26T21:47:40.0862724+08:00"
+  },
+  {
+    "name": "roplat_msgs",
+    "status": 404,
+    "source": "https://crates.io/api/v1/crates/roplat_msgs",
+    "observed_at": "2026-10-26T21:47:41.1633872+08:00"
+  },
+  {
+    "name": "roplat_kinematics",
+    "status": 404,
+    "source": "https://crates.io/api/v1/crates/roplat_kinematics",
+    "observed_at": "2026-10-26T21:47:42.4166981+08:00"
+  },
+  {
+    "name": "roplat_control",
+    "status": 404,
+    "source": "https://crates.io/api/v1/crates/roplat_control",
+    "observed_at": "2026-10-26T21:47:43.3949862+08:00"
+  },
+  {
+    "name": "roplat_trajectory",
+    "status": 404,
+    "source": "https://crates.io/api/v1/crates/roplat_trajectory",
+    "observed_at": "2026-10-26T21:47:44.3713047+08:00"
+  },
+  {
+    "name": "roplat_native",
+    "status": 404,
+    "source": "https://crates.io/api/v1/crates/roplat_native",
+    "observed_at": "2026-10-26T21:51:12.7077451+08:00"
+  }
+]
