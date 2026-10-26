@@ -156,6 +156,15 @@ Also implement:
 
 For mobile bases, quadrupeds, or humanoids, use the category traits and whole-body spaces instead of squeezing everything into `Arm`.
 
+Grippers and sensors use their own contracts, implemented on the type that owns the connection (the arm driver or a separate device):
+
+- `Gripper`: `read_gripper`, `move_gripper(GripperCommand)` returning when the motion ends, optional `home_gripper` / `stop_gripper`.
+- `ForceTorqueSensor::read_wrench`, `ImuSensor::read_imu`, `Camera::{camera_info, capture}`.
+
+Stamp readings from a `roplat_msgs::Clock` the driver holds, set the sensor frame in the `Header`, and increment `seq` per stream. Leave unsupported optional operations at their defaults so they report an error. Do not keep a vendor-specific gripper or IMU type as the only public API when the shared contract fits.
+
+When the robot has a URDF, joint limits and forward kinematics can come from `roplat_description::RobotModel` instead of hand-copied constants; check that its joint order matches the driver's.
+
 ## MoveTo
 
 Implement `MoveTo<S>` per supported motion space:

@@ -1,6 +1,6 @@
 # 0.8 发布包与 0.9 源码迁移
 
-本页适用于从 `robot_behavior 0.8.x` 迁到 `roplat_behavior 0.9` 的项目。2026-10-26 核实时，已发布组合是 `roplat 0.5.1` + `robot_behavior 0.8.1`；`roplat_behavior 0.9`、三个算法包与 `roplat_msgs` 尚未发布。版本相同也不能证明源码与发布包相同，尤其核心 main 的录制/重放和消息接口已继续演进。
+本页适用于从 `robot_behavior 0.8.x` 迁到 `roplat_behavior 0.9` 的项目。2026-10-26 核实时，已发布组合是 `roplat 0.5.1` + `robot_behavior 0.8.1`；`roplat_behavior 0.9`、三个算法包与 `roplat_msgs` 尚未发布；2026-10-27 新增的 `roplat_description` 同样未发布。版本相同也不能证明源码与发布包相同，尤其核心 main 的录制/重放和消息接口已继续演进。
 
 ## 仓库、包与依赖
 

@@ -1,24 +1,25 @@
 {
-  "checked_on": "2026-10-26",
+  "checked_on": "2026-10-27",
   "status": "development-validated",
   "current_source": {
     "roplat_version": "0.5.1",
     "roplat_behavior_version": "0.9.0",
-    "roplat_commit": "78fd47ee0a90194feb88f706ca90d6d584331de8",
-    "roplat_behavior_commit": "ef95abc825fe882221b9b7205c81f92ee6509f9a",
+    "roplat_commit": "102fb36a784042b69b36f1033ad5fcf91b6042cc",
+    "roplat_behavior_commit": "e9ef616b6d799861c8fd4037277f16799a89ac95",
     "unpublished_packages": [
       "roplat_behavior",
       "roplat_kinematics",
       "roplat_control",
       "roplat_trajectory",
+      "roplat_description",
       "roplat_msgs",
       "roplat_native"
     ],
     "profile": "current",
     "source_paths_required": true,
-    "note": "Core main shares the published version number but includes later APIs. Preserve source identity."
+    "note": "Pinned commits are the tested PR heads; they were merged as core afbdf61 (roplat#76) and behavior eb009b5 (roplat_behavior#18) with identical trees. Core shares the published version number but includes later APIs. Preserve source identity."
   },
-  "validation_evidence": "evaluations/results/20261026/development-validation.json",
+  "validation_evidence": "evaluations/results/20261027/development-validation.json",
   "scope": "Finite mock/pure-data examples plus run and strict Clippy. No hardware, GUI, backend model load, recording/replay, foreign-language runtime or real-time acceptance.",
   "validation": "scripts/verify_examples.py",
   "examples": [
