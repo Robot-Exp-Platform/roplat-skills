@@ -20,7 +20,7 @@
 
 ```toml
 [dependencies]
-roplat = "0.5.1"
+roplat = "0.6.0-rc.1"
 roplat_behavior = { version = "0.9.0", features = ["roplat"] }
 # 只添加实际使用的算法包
 roplat_kinematics = "0.9.0"
@@ -36,7 +36,7 @@ roplat_control = { path = "../roplat_behavior/roplat_control" }
 roplat_trajectory = { path = "../roplat_behavior/roplat_trajectory" }
 ```
 
-若直接使用 `roplat_msgs` 类型，另加 `roplat_msgs = { version = "0.5.1", features = ["nalgebra", "serde"] }`；仅 patch 不会引入依赖。`roplat` feature 只在需要图适配器时启用。源码验证要记录两个仓库的完整提交、dirty 状态与最终锁文件。
+若直接使用 `roplat_msgs` 类型，另加 `roplat_msgs = { version = "0.6.0-rc.1", features = ["nalgebra", "serde"] }`；仅 patch 不会引入依赖。`roplat` feature 只在需要图适配器时启用。源码验证要记录两个仓库的完整提交、dirty 状态与最终锁文件。
 
 ## 必须迁移的写法
 

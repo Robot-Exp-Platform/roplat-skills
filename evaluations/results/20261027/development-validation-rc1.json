@@ -1,0 +1,300 @@
+{
+  "date": "2026-10-27",
+  "branch": "next",
+  "base_next_commit": "4dd5f519ca59a88e4d3fa40df31b41011c4c9320",
+  "scope": "Three finite source examples (control_layers, robot_apps, behavior_current) built, run and linted on nightly-2026-10-20 against core 0.6.0-rc.1 and behavior without generic_const_exprs. Source paths verified using Cargo metadata.",
+  "toolchain": "nightly-2026-10-20 (RUSTUP_TOOLCHAIN)",
+  "source_commits": {
+    "roplat": {
+      "commit": "047c75d5efc5ded0f0afceb34142da3c573f5fc4",
+      "branch": "claude/core-0.6.0-rc.1",
+      "status": []
+    },
+    "roplat_behavior": {
+      "commit": "fe9b2dd6b574b9587d665910fadbe29f158ba7aa",
+      "branch": "claude/roplat-0.6.0-rc.1",
+      "status": []
+    }
+  },
+  "source_validation": {
+    "test": "next-rc1-source",
+    "command": [
+      "C:\\Python312\\python.exe",
+      "-X",
+      "utf8",
+      "E:\\yixing\\code\\Robot-Exp\\.work\\ecosystem-20261027\\roplat-skills\\skills\\roplat-development\\scripts\\verify_examples.py",
+      "--roplat",
+      "E:\\yixing\\code\\Robot-Exp\\.work\\ecosystem-20261027\\roplat",
+      "--behavior",
+      "E:\\yixing\\code\\Robot-Exp\\.work\\ecosystem-20261027\\roplat_behavior",
+      "--offline"
+    ],
+    "returncode": 0,
+    "expected_returncode": 0,
+    "log": "E:\\yixing\\code\\Robot-Exp\\.work\\ecosystem-20261027\\evidence\\next-rc1-source.log",
+    "evidence_directory": "D:\\roplat-build-20261027\\tmp-skills\\roplat-skill-example-ppb1k6zi",
+    "execution": {
+      "profile": "current",
+      "patches": {
+        "roplat": "E:\\yixing\\code\\Robot-Exp\\.work\\ecosystem-20261027\\roplat\\roplat",
+        "roplat_msgs": "E:\\yixing\\code\\Robot-Exp\\.work\\ecosystem-20261027\\roplat\\roplat_msgs",
+        "roplat_behavior": "E:\\yixing\\code\\Robot-Exp\\.work\\ecosystem-20261027\\roplat_behavior\\roplat_behavior",
+        "roplat_kinematics": "E:\\yixing\\code\\Robot-Exp\\.work\\ecosystem-20261027\\roplat_behavior\\roplat_kinematics",
+        "roplat_control": "E:\\yixing\\code\\Robot-Exp\\.work\\ecosystem-20261027\\roplat_behavior\\roplat_control",
+        "roplat_trajectory": "E:\\yixing\\code\\Robot-Exp\\.work\\ecosystem-20261027\\roplat_behavior\\roplat_trajectory"
+      },
+      "sources": {
+        "roplat": {
+          "path": "E:\\yixing\\code\\Robot-Exp\\.work\\ecosystem-20261027\\roplat\\roplat",
+          "commit": "047c75d5efc5ded0f0afceb34142da3c573f5fc4",
+          "status": []
+        },
+        "roplat_msgs": {
+          "path": "E:\\yixing\\code\\Robot-Exp\\.work\\ecosystem-20261027\\roplat\\roplat_msgs",
+          "commit": "047c75d5efc5ded0f0afceb34142da3c573f5fc4",
+          "status": []
+        },
+        "roplat_behavior": {
+          "path": "E:\\yixing\\code\\Robot-Exp\\.work\\ecosystem-20261027\\roplat_behavior\\roplat_behavior",
+          "commit": "fe9b2dd6b574b9587d665910fadbe29f158ba7aa",
+          "status": []
+        },
+        "roplat_kinematics": {
+          "path": "E:\\yixing\\code\\Robot-Exp\\.work\\ecosystem-20261027\\roplat_behavior\\roplat_kinematics",
+          "commit": "fe9b2dd6b574b9587d665910fadbe29f158ba7aa",
+          "status": []
+        },
+        "roplat_control": {
+          "path": "E:\\yixing\\code\\Robot-Exp\\.work\\ecosystem-20261027\\roplat_behavior\\roplat_control",
+          "commit": "fe9b2dd6b574b9587d665910fadbe29f158ba7aa",
+          "status": []
+        },
+        "roplat_trajectory": {
+          "path": "E:\\yixing\\code\\Robot-Exp\\.work\\ecosystem-20261027\\roplat_behavior\\roplat_trajectory",
+          "commit": "fe9b2dd6b574b9587d665910fadbe29f158ba7aa",
+          "status": []
+        }
+      },
+      "examples": {
+        "control_layers": {
+          "toolchain": "rustc 1.101.0-nightly (07e526db9 2026-10-19)",
+          "results": [
+            {
+              "example": "control_layers",
+              "step": "run",
+              "command": [
+                "cargo",
+                "run",
+                "--offline"
+              ],
+              "returncode": 0
+            },
+            {
+              "example": "control_layers",
+              "step": "clippy",
+              "command": [
+                "cargo",
+                "clippy",
+                "--offline",
+                "--",
+                "-D",
+                "warnings"
+              ],
+              "returncode": 0
+            }
+          ],
+          "used_patches": [
+            "roplat"
+          ],
+          "unused_patches": [
+            "roplat_behavior",
+            "roplat_control",
+            "roplat_kinematics",
+            "roplat_msgs",
+            "roplat_trajectory"
+          ],
+          "resolved": {
+            "roplat": {
+              "version": "0.6.0-rc.1",
+              "source": "local path"
+            },
+            "roplat_native": {
+              "version": "0.6.0-rc.1",
+              "source": "local path"
+            }
+          }
+        },
+        "robot_apps": {
+          "toolchain": "rustc 1.101.0-nightly (07e526db9 2026-10-19)",
+          "results": [
+            {
+              "example": "robot_apps",
+              "step": "run",
+              "command": [
+                "cargo",
+                "run",
+                "--offline"
+              ],
+              "returncode": 0
+            },
+            {
+              "example": "robot_apps",
+              "step": "clippy",
+              "command": [
+                "cargo",
+                "clippy",
+                "--offline",
+                "--",
+                "-D",
+                "warnings"
+              ],
+              "returncode": 0
+            }
+          ],
+          "used_patches": [
+            "roplat",
+            "roplat_msgs",
+            "roplat_behavior"
+          ],
+          "unused_patches": [
+            "roplat_control",
+            "roplat_kinematics",
+            "roplat_trajectory"
+          ],
+          "resolved": {
+            "roplat": {
+              "version": "0.6.0-rc.1",
+              "source": "local path"
+            },
+            "roplat_behavior": {
+              "version": "0.9.0",
+              "source": "local path"
+            },
+            "roplat_msgs": {
+              "version": "0.6.0-rc.1",
+              "source": "local path"
+            },
+            "roplat_native": {
+              "version": "0.6.0-rc.1",
+              "source": "local path"
+            }
+          }
+        },
+        "behavior_current": {
+          "toolchain": "rustc 1.101.0-nightly (07e526db9 2026-10-19)",
+          "results": [
+            {
+              "example": "behavior_current",
+              "step": "run",
+              "command": [
+                "cargo",
+                "run",
+                "--offline"
+              ],
+              "returncode": 0
+            },
+            {
+              "example": "behavior_current",
+              "step": "clippy",
+              "command": [
+                "cargo",
+                "clippy",
+                "--offline",
+                "--",
+                "-D",
+                "warnings"
+              ],
+              "returncode": 0
+            }
+          ],
+          "used_patches": [
+            "roplat",
+            "roplat_msgs",
+            "roplat_behavior",
+            "roplat_kinematics",
+            "roplat_control",
+            "roplat_trajectory"
+          ],
+          "unused_patches": [],
+          "resolved": {
+            "roplat": {
+              "version": "0.6.0-rc.1",
+              "source": "local path"
+            },
+            "roplat_behavior": {
+              "version": "0.9.0",
+              "source": "local path"
+            },
+            "roplat_control": {
+              "version": "0.9.0",
+              "source": "local path"
+            },
+            "roplat_kinematics": {
+              "version": "0.9.0",
+              "source": "local path"
+            },
+            "roplat_msgs": {
+              "version": "0.6.0-rc.1",
+              "source": "local path"
+            },
+            "roplat_native": {
+              "version": "0.6.0-rc.1",
+              "source": "local path"
+            },
+            "roplat_trajectory": {
+              "version": "0.9.0",
+              "source": "local path"
+            }
+          }
+        }
+      }
+    }
+  },
+  "negative_checks": [
+    {
+      "test": "required-source-roots",
+      "command": [
+        "C:\\Python312\\python.exe",
+        "-X",
+        "utf8",
+        "E:\\yixing\\code\\Robot-Exp\\.work\\ecosystem-20261027\\roplat-skills\\skills\\roplat-development\\scripts\\verify_examples.py",
+        "--offline"
+      ],
+      "returncode": 2,
+      "expected_returncode": 2,
+      "log": "E:\\yixing\\code\\Robot-Exp\\.work\\ecosystem-20261027\\evidence\\required-source-roots.log",
+      "evidence_directory": null
+    }
+  ],
+  "local_markdown_links": {
+    "files": [
+      "skills/robot-behavior/SKILL.md",
+      "skills/robot-behavior/references/migration-0.9.md",
+      "skills/robot-behavior/references/use-robot-driver.md",
+      "skills/roplat-development/SKILL.md"
+    ],
+    "checked": 26,
+    "missing": []
+  },
+  "validated_file_sha256_lf": {
+    "skills/robot-behavior/SKILL.md": "f9ad97f2f55df8423d6fea639608da94c3e441c3216c140c8664c6afaf4c3da4",
+    "skills/robot-behavior/references/migration-0.9.md": "45506d472363291b4c7e73050459996883eba6b8314224ed07d6625ec1cec09b",
+    "skills/robot-behavior/references/use-robot-driver.md": "2736805dc73c7495b908b8843d084cd8f1dd8630419f245ce96703cebdba480c",
+    "skills/robot-behavior/references/version.json": "b0060410a6242c397028022d6c905b5dfa9576a855f44eb04f5d78f603a2d7ce",
+    "skills/roplat-development/SKILL.md": "5322b1aa75a94b784163441abca94173a6b7767fd0386ede4a67b30c65d69772",
+    "skills/roplat-development/assets/behavior_current/Cargo.lock": "7b40d8d35627fef9e32daa62d9e43780c610ee21cc0170e17dc9f1af0e77763d",
+    "skills/roplat-development/assets/behavior_current/Cargo.toml": "4167a0f6d99b53070af9574312ac07ce806a142c622832724c224b45d2dc599b",
+    "skills/roplat-development/assets/behavior_current/src/main.rs": "7ca9f0c042777c8ba7ab3941026924899178e80deef62d8b28cee85c09505fa8",
+    "skills/roplat-development/assets/control_layers/Cargo.lock": "90649c118be3be938a5bc27c55ad2f6032aee69b3fcd4a0cbc44c27582cde0c1",
+    "skills/roplat-development/assets/control_layers/Cargo.toml": "76cdcebab619f3e568fe9058f80e7a0ba793df169845fb46a860a3975a9d1b1c",
+    "skills/roplat-development/assets/robot_apps/Cargo.lock": "31bef312cdab6c34925a656a4c8d96842eb9ef524a51994aa75266dfb2a5ec37",
+    "skills/roplat-development/assets/robot_apps/Cargo.toml": "dd4daac4d87aae668cd152ce42ad65fa193a8de35e1c3311ef6aa378d2bd6a94",
+    "skills/roplat-development/references/version.json": "b699ddd7624a457075bbc272f51a3a5bae0c280b060a087d9e436da6a54f7462"
+  },
+  "limits": [
+    "No hardware, GUI, backend model loading, recording/replay, foreign-language runtime or real-time qualification.",
+    "Examples do not exercise roplat_description, the device contracts or the clock sources; those are covered by the source repositories' tests.",
+    "The sandbox denies cargo writes under the system temp directory; TMP/TEMP point at a build folder on D:.",
+    "Core and behavior are unmerged branches stacked on the nightly-2026-10-20 toolchain pins."
+  ]
+}

@@ -5,7 +5,7 @@ description: 使用 roplat 的 Node、Rhythm 和 System 宏编写、修改或排
 
 # roplat 开发
 
-目标是写出结构清楚、使用真实 API、可编译验证的 roplat 程序。本 `next` 分支面向当前源码组合：先核对 [version.json](references/version.json)、项目 manifest / 锁文件、源码提交与位置。活动机器人例程使用 `roplat_behavior 0.9`；拆包、采样及路径迁移见[迁移说明](../robot-behavior/references/migration-0.9.md)。核心源码与已发布包都标 0.5.1，但接口不同；发布项目应使用 [`main` 技能](https://github.com/Robot-Exp-Platform/roplat-skills/tree/main)。涉及消息、录制/重放及 Python 时读通信参考并核对来源。服务范围是应用组织，不包括节点内部算法实现。
+目标是写出结构清楚、使用真实 API、可编译验证的 roplat 程序。本 `next` 分支面向当前源码组合：先核对 [version.json](references/version.json)、项目 manifest / 锁文件、源码提交与位置。活动机器人例程使用 `roplat_behavior 0.9`；拆包、采样及路径迁移见[迁移说明](../robot-behavior/references/migration-0.9.md)。核心源码已统一为 0.6.0-rc.1（未发布），接口与已发布的 0.5.1 不同；发布项目应使用 [`main` 技能](https://github.com/Robot-Exp-Platform/roplat-skills/tree/main)。涉及消息、录制/重放及 Python 时读通信参考并核对来源。服务范围是应用组织，不包括节点内部算法实现。
 
 ## 设计哲学
 

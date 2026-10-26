@@ -749,7 +749,7 @@ dependencies = [
 
 [[package]]
 name = "roplat"
-version = "0.5.1"
+version = "0.6.0-rc.1"
 dependencies = [
  "async-trait",
  "bincode",
@@ -816,7 +816,7 @@ dependencies = [
 
 [[package]]
 name = "roplat_launch"
-version = "0.5.1"
+version = "0.6.0-rc.1"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -829,7 +829,7 @@ dependencies = [
 
 [[package]]
 name = "roplat_macros"
-version = "0.5.1"
+version = "0.6.0-rc.1"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -841,7 +841,7 @@ dependencies = [
 
 [[package]]
 name = "roplat_msgs"
-version = "0.5.1"
+version = "0.6.0-rc.1"
 dependencies = [
  "nalgebra",
  "roplat_native",
@@ -850,14 +850,14 @@ dependencies = [
 
 [[package]]
 name = "roplat_native"
-version = "0.5.1"
+version = "0.6.0-rc.1"
 dependencies = [
  "roplat_macros",
 ]
 
 [[package]]
 name = "roplat_system"
-version = "0.5.1"
+version = "0.6.0-rc.1"
 dependencies = [
  "proc-macro2",
  "quote",

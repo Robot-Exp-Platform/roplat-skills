@@ -240,7 +240,7 @@ Do not require model traits in an application if the task can be written with li
 
 Enable `roplat_behavior`'s `roplat` feature explicitly; it is off by default. Organize applications with `#[roplat::system]` and child rhythm domains, following [roplat-development](../../roplat-development/SKILL.md). Do not replace an application graph with a hand-written chain of `.process()` calls to bypass macro or ownership errors.
 
-The robot uses a dedicated borrowed **resource channel** (roplat_behavior 0.9 / roplat 0.5.1):
+The robot uses a dedicated borrowed **resource channel** (roplat_behavior 0.9 / roplat 0.6.0-rc.1):
 
 ```rust
 &mut robot >> motion.resources.0;
