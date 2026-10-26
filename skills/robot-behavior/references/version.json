@@ -1,10 +1,9 @@
 {
-  "robot_behavior_version": "0.8.0",
-  "roplat_version": "0.5.0",
+  "robot_behavior_version": "0.8.1",
+  "roplat_version": "0.5.1",
   "registry": "crates.io",
   "toolchain": "nightly (robot_behavior uses async_trait_bounds and generic_const_exprs)",
   "status": "published-release-validated",
   "scope": "Resources=(R,) supplies a mutable robot borrow; MotionNode business Input is a target and Output is RobotResult<()>, control rhythms use unit Input/Output. Finite simulated examples do not validate hardware.",
-  "validation_evidence": "evaluations/results/20261022/self-contained-validation.json",
-  "provenance": "evaluations/provenance.json"
+  "validation_evidence": "evaluations/results/20261026/published-validation.json"
 }

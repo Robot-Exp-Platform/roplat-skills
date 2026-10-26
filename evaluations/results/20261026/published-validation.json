@@ -1,0 +1,530 @@
+{
+  "date": "2026-10-26",
+  "observed_at": "2026-10-26T22:04:46.539698+08:00",
+  "scope": "main branch published roplat 0.5.1 and robot_behavior 0.8.1; no source profile, source checkout or patch used by the release example validation.",
+  "contributor": {
+    "user": "yixing",
+    "device": "yixing-windows",
+    "tool": "Codex",
+    "instance": "/root/entry_check"
+  },
+  "base_skills_commit": "3ce217d895880756ae41f244ee242ca60fe33602",
+  "validation_command": [
+    "python",
+    "skills/roplat-development/scripts/verify_examples.py",
+    "--offline"
+  ],
+  "release_examples": {
+    "profile": "published",
+    "patches": {},
+    "sources": {},
+    "examples": {
+      "control_layers": {
+        "toolchain": "rustc 1.99.0-nightly (c4af71034 2026-07-06)",
+        "results": [
+          {
+            "example": "control_layers",
+            "step": "run",
+            "command": [
+              "cargo",
+              "run",
+              "--locked",
+              "--offline"
+            ],
+            "returncode": 0
+          },
+          {
+            "example": "control_layers",
+            "step": "clippy",
+            "command": [
+              "cargo",
+              "clippy",
+              "--locked",
+              "--offline",
+              "--",
+              "-D",
+              "warnings"
+            ],
+            "returncode": 0
+          }
+        ],
+        "used_patches": [],
+        "unused_patches": [],
+        "resolved": {
+          "roplat": {
+            "version": "0.5.1",
+            "source": "registry+https://github.com/rust-lang/crates.io-index"
+          }
+        }
+      },
+      "robot_apps": {
+        "toolchain": "rustc 1.99.0-nightly (c4af71034 2026-07-06)",
+        "results": [
+          {
+            "example": "robot_apps",
+            "step": "run",
+            "command": [
+              "cargo",
+              "run",
+              "--locked",
+              "--offline"
+            ],
+            "returncode": 0
+          },
+          {
+            "example": "robot_apps",
+            "step": "clippy",
+            "command": [
+              "cargo",
+              "clippy",
+              "--locked",
+              "--offline",
+              "--",
+              "-D",
+              "warnings"
+            ],
+            "returncode": 0
+          }
+        ],
+        "used_patches": [],
+        "unused_patches": [],
+        "resolved": {
+          "robot_behavior": {
+            "version": "0.8.1",
+            "source": "registry+https://github.com/rust-lang/crates.io-index"
+          },
+          "roplat": {
+            "version": "0.5.1",
+            "source": "registry+https://github.com/rust-lang/crates.io-index"
+          }
+        }
+      }
+    }
+  },
+  "raw_evidence_directory": "C:\\Users\\yanji\\AppData\\Local\\Temp\\roplat-skill-example-mbig5y7a",
+  "console_log": "C:\\Users\\yanji\\Documents\\ChatGPT\\roplat\\work\\skills-audit-20261026\\main-published-run.log",
+  "validated_file_sha256": {
+    "skills/roplat-development/scripts/verify_examples.py": "3f0c126e7318f95bf5bcbb304864d5f98834147760c4330580579a27cc3ddced",
+    "skills/roplat-development/assets/control_layers/Cargo.toml": "6d68860b6d308352e3317f03ec5834c0a83d3e4c1fa84879aaa5f0600b6e95ea",
+    "skills/roplat-development/assets/control_layers/Cargo.lock": "a0394bb2f8f4c9fade1d2f11b9a204e52672d07e7ee698d37029d0cc126cde04",
+    "skills/roplat-development/assets/control_layers/src/main.rs": "abd5c34028d56b20e7b6bc5dec77daffcc57e78eb2281f7112003f58bf82bde4",
+    "skills/roplat-development/assets/robot_apps/Cargo.toml": "f3741cb6df03dc990c8b97733870b50c43df67310237cb132c2c5525bbe937b9",
+    "skills/roplat-development/assets/robot_apps/Cargo.lock": "2e594879f772614a3a3b8d0c9cca5a2585024409fd81ab20ff3dfee94e55e21c",
+    "skills/roplat-development/assets/robot_apps/src/dual_arm.rs": "24b4db4f976260237f92eb841a31f370fe7bb4a0919e6afb727e271434c64b62",
+    "skills/roplat-development/assets/robot_apps/src/main.rs": "b4cb1aa405df615e22a5327c14e217ce11f359e078af53f9cd634b22d4e75239",
+    "skills/roplat-development/assets/robot_apps/src/nodes.rs": "59bb7459375a2df8772dae215033a04bca0ef08256cc01b8bc6b3c9cd1ec15ec",
+    "skills/roplat-development/assets/robot_apps/src/plan_hard.rs": "f2d4a694824ed61d698c64dfa271c0c047056f273aa376f09fd6dd0a28c60cc0",
+    "skills/roplat-development/assets/robot_apps/src/sequence_control.rs": "5ff7291de951f76cf483300d70736d3a51b48bbe9cefd3fa28d638955852d3b3",
+    "skills/roplat-development/assets/robot_apps/src/sequence_motion.rs": "661d07350ad94511ce7da3049429d5e9f501996da06fa2b54873944ee3a6350e",
+    "skills/roplat-development/assets/robot_apps/src/sequence_owned.rs": "6d88dba3d5147225cf69c16d9a6e2833ab69ba085068d125e2b33a9e4deb325a",
+    "skills/roplat-development/assets/robot_apps/src/sim.rs": "34c14db7478a5dcee3cf2f3c2d25fab73f878c0645b63fd6c331945edf7100b5",
+    "skills/roplat-development/assets/robot_apps/src/task_events.rs": "45d4f3c261fa4fa8ade7cc6a4e4be70a77c205e4a7d862a32d0ba0af32229e71"
+  },
+  "validator_negative_checks": [
+    {
+      "test": "ignored-incompatible-patch",
+      "command": [
+        "C:\\Python312\\python.exe",
+        "-X",
+        "utf8",
+        "E:\\yixing\\code\\Robot-Exp\\.work\\skills-20261026\\skills-main\\skills\\roplat-development\\scripts\\verify_examples.py",
+        "--only",
+        "control_layers",
+        "--offline",
+        "--patch",
+        "roplat=C:\\Users\\yanji\\Documents\\ChatGPT\\roplat\\work\\skills-audit-20261026\\main-validator-tests\\incompatible-roplat"
+      ],
+      "returncode": 1,
+      "expected_returncode": 1,
+      "passed": true,
+      "log": "C:\\Users\\yanji\\Documents\\ChatGPT\\roplat\\work\\skills-audit-20261026\\main-validator-tests\\ignored-incompatible-patch.log",
+      "evidence": {
+        "profile": "published",
+        "patches": {
+          "roplat": "C:\\Users\\yanji\\Documents\\ChatGPT\\roplat\\work\\skills-audit-20261026\\main-validator-tests\\incompatible-roplat"
+        },
+        "sources": {
+          "roplat": {
+            "path": "C:\\Users\\yanji\\Documents\\ChatGPT\\roplat\\work\\skills-audit-20261026\\main-validator-tests\\incompatible-roplat",
+            "commit": null,
+            "status": [
+              "?? mainline-20261026.code-workspace",
+              "?? work/"
+            ]
+          }
+        },
+        "examples": {
+          "control_layers": {
+            "results": [
+              {
+                "example": "control_layers",
+                "step": "source-selection",
+                "command": [
+                  "cargo",
+                  "metadata",
+                  "--format-version",
+                  "1",
+                  "--offline"
+                ],
+                "returncode": 1,
+                "errors": [
+                  "roplat: Cargo did not exclusively select requested source C:\\Users\\yanji\\Documents\\ChatGPT\\roplat\\work\\skills-audit-20261026\\main-validator-tests\\incompatible-roplat"
+                ]
+              }
+            ],
+            "used_patches": []
+          }
+        }
+      }
+    },
+    {
+      "test": "unexercised-patch",
+      "command": [
+        "C:\\Python312\\python.exe",
+        "-X",
+        "utf8",
+        "E:\\yixing\\code\\Robot-Exp\\.work\\skills-20261026\\skills-main\\skills\\roplat-development\\scripts\\verify_examples.py",
+        "--profile",
+        "published",
+        "--only",
+        "control_layers",
+        "--offline",
+        "--patch",
+        "roplat_skill_unused_patch=C:\\Users\\yanji\\Documents\\ChatGPT\\roplat\\work\\skills-audit-20261026\\main-validator-tests\\unused-patch"
+      ],
+      "returncode": 1,
+      "expected_returncode": 1,
+      "passed": true,
+      "log": "C:\\Users\\yanji\\Documents\\ChatGPT\\roplat\\work\\skills-audit-20261026\\main-validator-tests\\unexercised-patch.log",
+      "evidence": {
+        "profile": "published",
+        "patches": {
+          "roplat_skill_unused_patch": "C:\\Users\\yanji\\Documents\\ChatGPT\\roplat\\work\\skills-audit-20261026\\main-validator-tests\\unused-patch"
+        },
+        "sources": {
+          "roplat_skill_unused_patch": {
+            "path": "C:\\Users\\yanji\\Documents\\ChatGPT\\roplat\\work\\skills-audit-20261026\\main-validator-tests\\unused-patch",
+            "commit": null,
+            "status": [
+              "?? mainline-20261026.code-workspace",
+              "?? work/"
+            ]
+          }
+        },
+        "examples": {
+          "control_layers": {
+            "toolchain": "rustc 1.99.0-nightly (c4af71034 2026-07-06)",
+            "results": [
+              {
+                "example": "control_layers",
+                "step": "run",
+                "command": [
+                  "cargo",
+                  "run",
+                  "--offline"
+                ],
+                "returncode": 0
+              },
+              {
+                "example": "control_layers",
+                "step": "clippy",
+                "command": [
+                  "cargo",
+                  "clippy",
+                  "--offline",
+                  "--",
+                  "-D",
+                  "warnings"
+                ],
+                "returncode": 0
+              }
+            ],
+            "used_patches": [],
+            "unused_patches": [
+              "roplat_skill_unused_patch"
+            ],
+            "resolved": {
+              "roplat": {
+                "version": "0.5.1",
+                "source": "registry+https://github.com/rust-lang/crates.io-index"
+              }
+            }
+          }
+        },
+        "unvalidated_patches": [
+          "roplat_skill_unused_patch"
+        ]
+      }
+    },
+    {
+      "test": "mismatched-package-name",
+      "command": [
+        "C:\\Python312\\python.exe",
+        "-X",
+        "utf8",
+        "E:\\yixing\\code\\Robot-Exp\\.work\\skills-20261026\\skills-main\\skills\\roplat-development\\scripts\\verify_examples.py",
+        "--only",
+        "control_layers",
+        "--offline",
+        "--patch",
+        "roplat=C:\\Users\\yanji\\Documents\\ChatGPT\\roplat\\work\\skills-audit-20261026\\main-validator-tests\\unused-patch"
+      ],
+      "returncode": 2,
+      "expected_returncode": 2,
+      "passed": true,
+      "log": "C:\\Users\\yanji\\Documents\\ChatGPT\\roplat\\work\\skills-audit-20261026\\main-validator-tests\\mismatched-package-name.log"
+    },
+    {
+      "test": "unknown-example",
+      "command": [
+        "C:\\Python312\\python.exe",
+        "-X",
+        "utf8",
+        "E:\\yixing\\code\\Robot-Exp\\.work\\skills-20261026\\skills-main\\skills\\roplat-development\\scripts\\verify_examples.py",
+        "--only",
+        "absent_example"
+      ],
+      "returncode": 2,
+      "expected_returncode": 2,
+      "passed": true,
+      "log": "C:\\Users\\yanji\\Documents\\ChatGPT\\roplat\\work\\skills-audit-20261026\\main-validator-tests\\unknown-example.log"
+    },
+    {
+      "test": "unavailable-source-profile",
+      "command": [
+        "C:\\Python312\\python.exe",
+        "-X",
+        "utf8",
+        "E:\\yixing\\code\\Robot-Exp\\.work\\skills-20261026\\skills-main\\skills\\roplat-development\\scripts\\verify_examples.py",
+        "--profile",
+        "current"
+      ],
+      "returncode": 2,
+      "expected_returncode": 2,
+      "passed": true,
+      "log": "C:\\Users\\yanji\\Documents\\ChatGPT\\roplat\\work\\skills-audit-20261026\\main-validator-tests\\unavailable-source-profile.log"
+    }
+  ],
+  "skill_quick_validate": [
+    {
+      "skill": "roplat-development",
+      "command": [
+        "C:\\Python312\\python.exe",
+        "-X",
+        "utf8",
+        "C:/Users/yanji/.codex/skills/.system/skill-creator/scripts/quick_validate.py",
+        "E:\\yixing\\code\\Robot-Exp\\.work\\skills-20261026\\skills-main\\skills\\roplat-development"
+      ],
+      "returncode": 0,
+      "log": "C:\\Users\\yanji\\Documents\\ChatGPT\\roplat\\work\\skills-audit-20261026\\main-validator-tests\\quick-validate-roplat-development.log"
+    },
+    {
+      "skill": "robot-behavior",
+      "command": [
+        "C:\\Python312\\python.exe",
+        "-X",
+        "utf8",
+        "C:/Users/yanji/.codex/skills/.system/skill-creator/scripts/quick_validate.py",
+        "E:\\yixing\\code\\Robot-Exp\\.work\\skills-20261026\\skills-main\\skills\\robot-behavior"
+      ],
+      "returncode": 0,
+      "log": "C:\\Users\\yanji\\Documents\\ChatGPT\\roplat\\work\\skills-audit-20261026\\main-validator-tests\\quick-validate-robot-behavior.log"
+    }
+  ],
+  "companion_release_metadata": [
+    {
+      "name": "roplat_build",
+      "version": "0.5.1",
+      "yanked": false,
+      "source": "https://crates.io/api/v1/crates/roplat_build/0.5.1"
+    },
+    {
+      "name": "roplat_cpp",
+      "version": "0.5.1",
+      "yanked": false,
+      "source": "https://crates.io/api/v1/crates/roplat_cpp/0.5.1"
+    },
+    {
+      "name": "roplat_py",
+      "version": "0.5.1",
+      "yanked": false,
+      "source": "https://crates.io/api/v1/crates/roplat_py/0.5.1"
+    }
+  ],
+  "limits": [
+    "Finite simulated examples; no real hardware, foreign-language execution, replay or real-time performance qualification.",
+    "Quick validation checks skill structure, not independent task success.",
+    "Historical evaluations keep their original versions and are not reused as this release result."
+  ],
+  "local_markdown_links": {
+    "files_checked": 13,
+    "links_checked": 64,
+    "missing": []
+  },
+  "version_metadata_evidence_links": "passed for both skills",
+  "syntax_verification": {
+    "raw_evidence_directory": "C:\\Users\\yanji\\Documents\\ChatGPT\\roplat\\work\\skills-audit-20261026\\main-syntax-check",
+    "summary": {
+      "contributor": "codex subagent /root/entry_check/sync_inventory",
+      "scope": "Registry-only finite verification of published main syntax; no hardware or source-repository changes",
+      "published_versions": {
+        "roplat": "0.5.1",
+        "robot_behavior": "0.8.1"
+      },
+      "dependency_verification": "metadata.stdout.txt records registry+ sources and exact resolved versions; Cargo.lock copied from the published-main example and used with --locked --offline",
+      "passing_source": "src/main.rs",
+      "passing_result": "result.json",
+      "passing_stdout": "run.stdout.txt",
+      "checks": [
+        {
+          "syntax": "motion?; motion >> control.trigger;",
+          "normal": {
+            "events": [
+              "motion",
+              "control"
+            ],
+            "control_entries": 1,
+            "final_joint": 1.25
+          },
+          "motion_failure": {
+            "system_returned_error": true,
+            "events": [
+              "motion"
+            ],
+            "control_entries": 0
+          }
+        },
+        {
+          "syntax": "let (count_handle, mut camera) = create_count_rhythm(2); count_handle.set_times(3);",
+          "observed_cycle_values": [
+            10,
+            11,
+            12
+          ],
+          "cycles": 3
+        },
+        {
+          "syntax": "Both hard rhythm declarations precede the contiguous System graph; domains use move closures",
+          "planning_on_non_main_threads": true,
+          "control_on_non_main_thread": true,
+          "control_entries": 1
+        }
+      ],
+      "failed_alternative": {
+        "syntax": "motion? >> control.trigger;",
+        "source": "trigger-chain-failure/main.rs",
+        "stdout": "trigger-chain-failure/run.stdout.txt",
+        "stderr": "trigger-chain-failure/run.stderr.txt",
+        "observed_motion_failure": {
+          "system_returned_error": false,
+          "events": [
+            "motion",
+            "control"
+          ],
+          "control_entries": 1
+        },
+        "run_exit_code": 101,
+        "conclusion": "The combined question-mark trigger edge did not propagate the injected MotionNode failure in the published 0.5.1 graph. It is not an accepted main example. No core fix attempted."
+      },
+      "initial_fixture_error": "initial-compile-attempt preserves the preliminary compile error for an omitted required hold_command trait method; that fixture was corrected before behavioral comparison",
+      "limits": "Finite simulated one-joint driver and macro syntax only; no hardware, timing guarantee, or general exhaustive DSL validation"
+    },
+    "execution": {
+      "contributor": "codex subagent /root/entry_check/sync_inventory",
+      "started_at": "2026-10-26T14:05:40.636134+00:00",
+      "scope": "Finite registry-only validation of main syntax corrections; no device I/O",
+      "cargo_target_dir": "C:/Users/yanji/AppData/Local/Temp/roplat-skill-example-zcl8nk41/target",
+      "commands": [
+        {
+          "name": "toolchain",
+          "argv": [
+            "rustc",
+            "-Vv"
+          ],
+          "exit_code": 0
+        },
+        {
+          "name": "metadata",
+          "argv": [
+            "cargo",
+            "metadata",
+            "--locked",
+            "--offline",
+            "--format-version",
+            "1"
+          ],
+          "exit_code": 0
+        },
+        {
+          "name": "format",
+          "argv": [
+            "cargo",
+            "fmt"
+          ],
+          "exit_code": 0
+        },
+        {
+          "name": "run",
+          "argv": [
+            "cargo",
+            "run",
+            "--locked",
+            "--offline"
+          ],
+          "exit_code": 0
+        },
+        {
+          "name": "clippy",
+          "argv": [
+            "cargo",
+            "clippy",
+            "--locked",
+            "--offline",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit_code": 0
+        }
+      ],
+      "resolved_baseline": [
+        {
+          "name": "robot_behavior",
+          "version": "0.8.1",
+          "source": "registry+https://github.com/rust-lang/crates.io-index",
+          "manifest_path": "C:\\Users\\yanji\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\robot_behavior-0.8.1\\Cargo.toml"
+        },
+        {
+          "name": "roplat",
+          "version": "0.5.1",
+          "source": "registry+https://github.com/rust-lang/crates.io-index",
+          "manifest_path": "C:\\Users\\yanji\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\roplat-0.5.1\\Cargo.toml"
+        },
+        {
+          "name": "roplat_macros",
+          "version": "0.5.1",
+          "source": "registry+https://github.com/rust-lang/crates.io-index",
+          "manifest_path": "C:\\Users\\yanji\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\roplat_macros-0.5.1\\Cargo.toml"
+        },
+        {
+          "name": "roplat_system",
+          "version": "0.5.1",
+          "source": "registry+https://github.com/rust-lang/crates.io-index",
+          "manifest_path": "C:\\Users\\yanji\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\roplat_system-0.5.1\\Cargo.toml"
+        }
+      ],
+      "finished_at": "2026-10-26T14:05:45.192560+00:00",
+      "passed": true
+    },
+    "source_sha256": "0c03ff9b87308c37fdd5fdc25e6980b55c3e1bbaf5eb5ba8446e79a99bad7257",
+    "failed_alternative_source_sha256": "583a9eaf8bf9a96aa535811aa6100b8e1a011e105dff338bfb7722e585ec1c5f",
+    "document_sha256": "ef7bf2d6a2e083307d0520dc58cea6621eb5b6d1f19edaeb7a6cd578d2710c36"
+  },
+  "reproducible_syntax_fixture": "evaluations/results/20261026/syntax-check",
+  "syntax_fixture_sha256_lf": {
+    "Cargo.toml": "d723cdb687274d8f1961db5b38bc6324d225251a9cb99c55ea5ae842edb6aec1",
+    "Cargo.lock": "2e594879f772614a3a3b8d0c9cca5a2585024409fd81ab20ff3dfee94e55e21c",
+    "rust-toolchain.toml": "2ce1c1fe5e79a52424c9d88d99f5a2c95dcf5b4f4a82431bb9e5710cfb39e184",
+    "src/main.rs": "0c03ff9b87308c37fdd5fdc25e6980b55c3e1bbaf5eb5ba8446e79a99bad7257"
+  }
+}

@@ -1,6 +1,6 @@
 # robot_behavior 概念速查
 
-这是 `use-robot-driver` 和 `implement-robot-driver` 共享的当前事实层。开始工作前先读源码确认没有漂移：
+这是 `use-robot-driver` 和 `implement-robot-driver` 共享的 robot_behavior 0.8.1 参考。下文的 `robot_behavior/` 表示用户实际依赖的 crates.io 包根目录（含 `EXAMPLES.md`），不要求克隆同名源码仓。需要查实现时，通过 `cargo metadata` 的 `manifest_path` 找到该版本，再按相关能力选读：
 
 - `robot_behavior/src/lib.rs`
 - `robot_behavior/src/robot/mod.rs`

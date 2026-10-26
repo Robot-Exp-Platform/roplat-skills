@@ -35,7 +35,7 @@ typed IPC 的自定义消息要求 `Copy + NativeMessage`；`#[roplat_msg]` 自�
 
 ## C++ / Python
 
-应用仍是Rust项目：使用roplat宏和build.rs生成可修改的外语节点文件，C++/Python实现节点；Rhythm/System组织留在Rust。生成器所有的文件会重建，用户实现文件仅缺失时生成，避免修改会被覆盖的基类。构建与绑定以 crates.io 上 `roplat_build`、`roplat_cpp`、`roplat_py` 0.5.0 的 crate 文档为准。
+应用仍是Rust项目：使用roplat宏和build.rs生成可修改的外语节点文件，C++/Python实现节点；Rhythm/System组织留在Rust。生成器所有的文件会重建，用户实现文件仅缺失时生成，避免修改会被覆盖的基类。构建与绑定以 crates.io 上 `roplat_build`、`roplat_cpp`、`roplat_py` 0.5.1 的 crate 文档为准。
 
 当前 Python 透明 Node 在 `on_init` 中验证并缓存 ctypes 布局，返回时只接受预期准确类型或显式 bytes，并检查长度；暂不检查 bool 等字段位模式。手写透明 `TypeBinding` 需要提供 native hooks。返回路径已删除中间 Rust Vec，仍不等于端到端零复制。
 
@@ -43,7 +43,7 @@ typed IPC 的自定义消息要求 `Copy + NativeMessage`；`#[roplat_msg]` 自�
 
 ## Replay：录制 Feed 源与类型化比较
 
-roplat 0.5.0 提供 `ReplayFeedSource<D>`、类型化 `FeedComparator<D>` 与 `FloatTolerance`（`roplat::rhythm::replay`）。使用其他版本时先核对公开 API；具体签名查 crate 文档。
+roplat 0.5.1 提供 `ReplayFeedSource<D>`、类型化 `FeedComparator<D>` 与 `FloatTolerance`（`roplat::rhythm::replay`）。使用其他版本时先核对公开 API；具体签名查 crate 文档。
 
 需要重放录制的周期输出时使用 `ReplayFeedSource<D>`：它将录制的 Feed 作为新消费者域的 Yield，不运行原录制域，也不重建原 drive 的完整 Output。其 Feed 为 `()`，整次 Output 为完成帧数报告；父域必须等当前 drive 完成才读取报告。需要对重新执行得到的 Feed 作数值或业务比较时，使用 `ReplayRhythm::with_comparator(...)`；它按真实 D 解码并比较，不能把任意序列化字节当作 f64。`ReplayMode::OutputOnly` 和 `FeedCheck::Tolerance` 不是受支持的执行入口，在 drive 开始前报错，不应作为推荐写法。
 

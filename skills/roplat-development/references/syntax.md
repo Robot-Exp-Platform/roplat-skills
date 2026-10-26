@@ -1,6 +1,6 @@
 # 推荐的真实 System 语法
 
-本文是 roplat 0.5 System 写法的完整参考，片段可组合，节点名不是关键字。类型与函数签名查 crate 文档（docs.rs 上的 roplat 0.5.0，或在项目里 `cargo doc --open`）；可运行的完整程序在本技能的 [assets](../assets/)。
+本文是 roplat 0.5 System 写法的完整参考，片段可组合，节点名不是关键字。类型与函数签名查 crate 文档（docs.rs 上的 roplat 0.5.1，或在项目里 `cargo doc --open`）；可运行的完整程序在本技能的 [assets](../assets/)。
 
 ## 入口与基本图
 
@@ -39,7 +39,8 @@ async fn run(mut source: Source, mut sink: Sink) -> roplat::RoplatResult<()> {
 ```rust
 &mut arm >> motion.resources.0;
 goal >> motion;                 // Input = Target，Output = RobotResult<()>
-motion?;
+motion?;                       // 业务失败先提升为框架错误
+motion >> control.trigger;     // 同一资源的使用顺序由依赖明确连接
 &mut arm >> control.resources.0;
 control >> |(state, dt)| { /* 算法 */ servo };
 control.outcome >> record;      // Execution<()>，可直接处理本次会话失败
@@ -51,6 +52,7 @@ control.outcome >> record;      // Execution<()>，可直接处理本次会话�
 - 相同条件的重复 match 会合并为一次图调用；在两次 match 之间插入的同一资源使用须与合并后的 match 建立依赖，否则按无依赖使用报错。应把相关使用放入同一个域，或用独立命名的 match 表达不同调用。
 - 资源留在拥有状态里，业务 Input/Output 不携带它。删除的 `ResourceSlot`、`reclaim_input` 和 `user >> &mut arm` 不应出现在新程序中。
 - 同一资源的任意两个使用之间写出数据或 `.trigger` 依赖（如 `reach >> settle.trigger;`）。使用只按依赖（含传递）排序，与绑定书写顺序无关；无依赖的两个使用编译报错，节律结果用 `.outcome` 处理时写 `child.outcome >> next.trigger;`。独立资源按图依赖并发。业务错误 `motion?` 与资源借用无关，不需要“归还后再检查”。借用允许正常 Rust 本体替换，不承诺对象身份不变。
+- roplat 0.5.1 中，业务检查与触发边分开写为 `motion?; motion >> control.trigger;`。不要合并成 `motion? >> control.trigger;`：该写法在失败验证中没有传播业务错误，后续控制仍会执行。
 - 本层创建的资源由本层 Lifecycle 启停；参数由调用方管理。内层域可借用外层资源；尾段可调用资源方法。外部按值传入、由调用方管理的资源可 `Ok(arm)` 返回；本层创建并由 Lifecycle 管理的资源需留下执行关闭钩子，尾段返回业务状态快照，不能提前移走本体。节律持有资源期间，其周期域不能同时使用同一资源。
 - Rhythm 的 `.outcome` 可直接隔离该 drive 的失败；要把一组节点作为一段隔离，用 `once()` 子域，逐段收集业务结果用 `into_collect_rhythm()`（见内置节律）。仅在后续任务独立于失败段时继续。
 - Node 业务错误用业务错误类型加 `Into<RoplatError>`，或 `RoplatError::NodeProcessing(..)`；设备 `RobotException` 已有转换。
@@ -62,7 +64,7 @@ control.outcome >> record;      // Execution<()>，可直接处理本次会话�
 | `iter.into_rhythm()`（`roplat::rhythm::IntoRhythm`） | 迭代器的下一项 | 迭代器耗尽；Output `()`。位置跨 drive 保留 | 航点、任务步骤 |
 | `iter.into_collect_rhythm()` | 同上 | 同上；Output 是本次各周期 Feed 的 `Vec` | 逐段收集结果 |
 | `iter.with_period(dt)`（`roplat::rhythm::WithPeriod`） | 下一项，按 `dt` 定时 | 迭代器耗尽 | 定频采样、脚本化输入 |
-| `CountRhythm::new(n)` / `create_count_rhythm(n)` | 计数 | 跑满 n 个周期 | 有限次循环 |
+| `CountRhythm::new(n)`；`create_count_rhythm(n)` → `(CountHandle, CountRhythm)` | 计数 | 跑满 n 个周期 | 有限次循环；工厂函数需先解构，句柄可调整计数 |
 | `once::<I, F>()` | Input 本身 | 运行一个周期；Output 是该周期 Feed | 把一段图包成可隔离、可 hard 的域 |
 | `retry::<I, O, E>(n)` | `(input, attempt)`，attempt 从 0 起 | 某周期 Feed 为 `Ok`，或本次 drive 用满 n 次；Output 是最后一次 Feed（`Result<O, E>`，全失败仍是业务数据，`retry.output?` 才升级为错误）。`retry.attempts()` 是累计次数 | 重试一个任务步骤 |
 | `feedback(n, finished)` | 首周期为 Input，之后为上一周期 Feed | `finished(&feed)` 成立或用满 n 个周期；Output 是最后一次 Feed | 状态机：节点读上一结果决定下一指令 |
@@ -81,11 +83,11 @@ control.outcome >> record;      // Execution<()>，可直接处理本次会话�
 
 ```rust
 let mut infer = roplat::rhythm::once::<Frame, Detections>().hard();
+let mut control = ControlRhythm::new().hard();
 camera >> |frame| {
     frame >> infer >> move |frame| { frame >> detector; detector };
     infer.output >> tracker;
 };
-let mut control = ControlRhythm::new().hard();
 &mut robot >> control.resources.0;
 control >> move |(obs, dt)| { obs >> law; law };
 ```
@@ -137,4 +139,4 @@ speed >> limiter;
 
 `#[roplat::system(file = "architecture.yaml", context = context)]` 使用文件前端和共享停止域；文件路径相对用户crate，YAML能力小于Rust DSL，不能据Rust三层例程推断YAML支持同等嵌套。未知属性被宏拒绝；`stop_check` 不是可用属性。
 
-`system_item!` 用于已有async上下文内联块，失败/停止按普通值边界处理并可能panic；需要清楚的Execution边界时优先具名 `#[system]` 函数。spawn必须满足Send/'static；普通分支优先让System自动同任务join，不为获得并发随意加spawn。0.5.0 只在根作用域 spawn，节律周期与 match 内一律 join；要隔离重计算或实时回路，用上文的 hard 节律，不寻找 spawn 写法；`#[spawn]` 不是语句属性。
+`system_item!` 用于已有async上下文内联块，失败/停止按普通值边界处理并可能panic；需要清楚的Execution边界时优先具名 `#[system]` 函数。spawn必须满足Send/'static；普通分支优先让System自动同任务join，不为获得并发随意加spawn。0.5.1 只在根作用域 spawn，节律周期与 match 内一律 join；要隔离重计算或实时回路，用上文的 hard 节律，不寻找 spawn 写法；`#[spawn]` 不是语句属性。

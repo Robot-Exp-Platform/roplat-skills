@@ -1,6 +1,6 @@
 # 验证、版本核对与排错
 
-先确定用户项目依赖的 roplat 版本（`Cargo.toml` / `Cargo.lock`）。本技能对应 roplat `0.5.0` 与 robot_behavior `0.8.0`，见 [version.json](version.json)。0.4 及更早的资源返回边、`ResourceSlot`、`reclaim_input` 与 0.5 不兼容，不要混用；`stop_check` 不是可用属性。
+先确定用户项目依赖的 roplat 版本（`Cargo.toml` / `Cargo.lock`）。本技能对应 roplat `0.5.1` 与 robot_behavior `0.8.1`，见 [version.json](version.json)。0.4 及更早的资源返回边、`ResourceSlot`、`reclaim_input` 与 0.5 不兼容，不要混用；`stop_check` 不是可用属性。
 
 ## 可运行例程
 
@@ -55,4 +55,4 @@ python3 <skill目录>/scripts/verify_examples.py --offline
 
 修改后运行相关包的测试和 Clippy，按影响范围决定是否做完整验证。核心或驱动接口层面的改动先与用户讨论目的、利弊和兼容性；技能本身不授权这类重构。报告性能时写明版本、机器、负载、采样方式和失败项，不从展开代码更短或 Future 更小直接推断更快。消息边界的限制（bool 等字段的接收值不校验）见[通信说明](communication-and-languages.md)，不能据此宣称可以安全接收任意外部字节。有限测试通过不代表所有路径安全、完整或达到稳定发行标准。
 
-例程保留独立锁文件；依赖变化使 `--locked` 失败时，审阅并重新验证锁文件后更新技能资产，不在交付脚本中静默解除锁定。检查未发布的 roplat 时，维护者可用 `--patch roplat=<本地 crate 目录>` 改用本地源码，此时锁文件不再适用，脚本不加 `--locked` 并在证据中记录。
+例程保留独立锁文件；依赖变化使 `--locked` 失败时，审阅并重新验证锁文件后更新技能资产，不在交付脚本中静默解除锁定。维护者诊断本地修改时可用 `--patch roplat=<本地 crate 目录>`，此时脚本不加 `--locked`，并核对 Cargo 实际选择的来源；patch 未被采用或没有被所选例程使用时验证失败。诊断结果与无 patch 的发布版验收分开记录。`--profile published` 等价于默认运行。

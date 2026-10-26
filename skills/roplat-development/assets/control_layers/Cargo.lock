@@ -185,9 +185,9 @@ dependencies = [
 
 [[package]]
 name = "roplat"
-version = "0.5.0"
+version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0fe5583a25e75b1a21b93cfda1f623b3f37736f75d9a631eda70f9e5fce54661"
+checksum = "ec503192812f9c53212826e585a059bd27b4ee0e1d2ca0869e4688ce974da194"
 dependencies = [
  "async-trait",
  "bincode",
@@ -212,9 +212,9 @@ dependencies = [
 
 [[package]]
 name = "roplat_launch"
-version = "0.5.0"
+version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c51e31d2b1ca61083bbcc4da7d069b44f8dc23adbd82cf80895fea81c6c1cf0d"
+checksum = "5224c0f86f8034e7c7b9fd46bedcb6bb8efc37ae66328c0238aebf291851c817"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -227,9 +227,9 @@ dependencies = [
 
 [[package]]
 name = "roplat_macros"
-version = "0.5.0"
+version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9d075b45cf48c79c9fc01283382b9dbfb9e786daacb41a25e5f665b51702a2e0"
+checksum = "403740f9a1532d8703159a73c0f953a7f9208651a595896b1f514884163cf093"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -241,9 +241,9 @@ dependencies = [
 
 [[package]]
 name = "roplat_system"
-version = "0.5.0"
+version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "81c63625603ddf607c0dac3cc4d94853233ccd247d8decea8c8cb97fe465d953"
+checksum = "d31ff08593774829cb498416cd85ac56c4dedf7bb8b276aef08df495c5ee16fb"
 dependencies = [
  "proc-macro2",
  "quote",

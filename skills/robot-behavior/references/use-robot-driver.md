@@ -1,6 +1,6 @@
 # 使用已有驱动（use-robot-driver）
 
-Use an existing `robot_behavior` driver without leaking driver implementation concerns into application code.
+Use an existing driver compatible with published `robot_behavior` 0.8.1 without leaking driver implementation concerns into application code. Paths beginning with `robot_behavior/` refer to that dependency's package root, not an unreleased source checkout.
 
 Read the shared [API and semantics reference](robot-behavior-overview.md) first. Then inspect the target driver's examples and trait impls before writing code. For Roplat applications, also use the sibling [roplat-development](../../roplat-development/SKILL.md) skill; this device capability guide does not define the graph DSL.
 

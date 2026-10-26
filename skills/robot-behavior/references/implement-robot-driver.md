@@ -1,6 +1,6 @@
 # 实现或审查驱动（implement-robot-driver）
 
-Implement or review a driver so it honestly fits the current `robot_behavior` abstraction.
+Implement or review a driver against published `robot_behavior` 0.8.1. Paths beginning with `robot_behavior/` refer to that dependency's package root, not an unreleased source checkout.
 
 Read the shared [API and semantics reference](robot-behavior-overview.md) first. Then read the target crate's current source before editing. For application graph examples, combine this guide with the sibling [roplat-development](../../roplat-development/SKILL.md) skill; keep this guide focused on device capabilities.
 

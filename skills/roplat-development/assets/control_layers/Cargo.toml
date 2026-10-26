@@ -7,5 +7,5 @@ publish = false
 [workspace]
 
 [dependencies]
-roplat = "0.5.0"
+roplat = "0.5.1"
 tokio = { version = "1", features = ["rt", "rt-multi-thread", "macros", "sync", "time"] }

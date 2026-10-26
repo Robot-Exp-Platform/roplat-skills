@@ -7,6 +7,6 @@ publish = false
 [workspace]
 
 [dependencies]
-roplat = "0.5.0"
-robot_behavior = { version = "0.8.0", features = ["roplat"] }
+roplat = "0.5.1"
+robot_behavior = { version = "0.8.1", features = ["roplat"] }
 tokio = { version = "1", features = ["rt", "macros", "sync", "time"] }

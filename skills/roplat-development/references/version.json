@@ -1,5 +1,5 @@
 {
-  "roplat_version": "0.5.0",
+  "roplat_version": "0.5.1",
   "registry": "crates.io",
   "status": "published-release-validated",
   "scope": "Examples depend only on the published crates: control_layers (three rhythm layers, retained state, lifecycle, failure cleanup) and robot_apps on a simulated arm (two-layer control, MotionNode, System-created arm, planning in a hard rhythm beside a control loop, event-driven operator commands with guard, graph if and retry, dual-arm sideband). Hardware, real-time performance and foreign-language paths are not validated by these finite examples.",
@@ -8,7 +8,6 @@
     "assets/control_layers",
     "assets/robot_apps"
   ],
-  "robot_behavior_version": "0.8.0",
-  "validation_evidence": "evaluations/results/20261022/self-contained-validation.json",
-  "provenance": "evaluations/provenance.json"
+  "robot_behavior_version": "0.8.1",
+  "validation_evidence": "evaluations/results/20261026/published-validation.json"
 }
