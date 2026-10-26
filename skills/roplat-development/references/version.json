@@ -17,7 +17,7 @@
     ],
     "profile": "current",
     "source_paths_required": true,
-    "note": "Development branches claude/ecosystem-p0-20261027 (unmerged PRs) on top of core main 78fd47e and behavior main ef95abc. Core shares the published version number but includes later APIs. Preserve source identity."
+    "note": "Pinned commits are the tested PR heads; they were merged as core afbdf61 (roplat#76) and behavior eb009b5 (roplat_behavior#18) with identical trees. Core shares the published version number but includes later APIs. Preserve source identity."
   },
   "validation_evidence": "evaluations/results/20261027/development-validation.json",
   "scope": "Finite mock/pure-data examples plus run and strict Clippy. No hardware, GUI, backend model load, recording/replay, foreign-language runtime or real-time acceptance.",
