@@ -2,10 +2,10 @@
   "checked_on": "2026-10-27",
   "status": "development-validated",
   "current_source": {
-    "roplat_version": "0.5.1",
+    "roplat_version": "0.6.0-rc.1",
     "roplat_behavior_version": "0.9.0",
-    "roplat_commit": "102fb36a784042b69b36f1033ad5fcf91b6042cc",
-    "roplat_behavior_commit": "e9ef616b6d799861c8fd4037277f16799a89ac95",
+    "roplat_commit": "047c75d5efc5ded0f0afceb34142da3c573f5fc4",
+    "roplat_behavior_commit": "fe9b2dd6b574b9587d665910fadbe29f158ba7aa",
     "unpublished_packages": [
       "roplat_behavior",
       "roplat_kinematics",
@@ -17,9 +17,9 @@
     ],
     "profile": "current",
     "source_paths_required": true,
-    "note": "Pinned commits are the tested PR heads; they were merged as core afbdf61 (roplat#76) and behavior eb009b5 (roplat_behavior#18) with identical trees. Core shares the published version number but includes later APIs. Preserve source identity."
+    "note": "Core claude/core-0.6.0-rc.1 and behavior claude/roplat-0.6.0-rc.1 (generic_const_exprs removed), stacked on the nightly-2026-10-20 toolchain pins; not yet merged. The core source is 0.6.0-rc.1 and differs from the published 0.5.1. Preserve source identity."
   },
-  "validation_evidence": "evaluations/results/20261027/development-validation.json",
+  "validation_evidence": "evaluations/results/20261027/development-validation-rc1.json",
   "scope": "Finite mock/pure-data examples plus run and strict Clippy. No hardware, GUI, backend model load, recording/replay, foreign-language runtime or real-time acceptance.",
   "validation": "scripts/verify_examples.py",
   "examples": [

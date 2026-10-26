@@ -9,7 +9,7 @@ roplat_behavior 用类型化能力 trait 描述机器人能做什么：`Robot`�
 
 本 `next` 分支对应源码 `roplat_behavior 0.9`，先核对项目 manifest、锁文件、源码提交与 [version.json](references/version.json)。技能目录名 `robot-behavior` 保留以兼容既有链接。0.9 项目先读[迁移与依赖路径](references/migration-0.9.md)；截至 2026-10-27，五个行为/算法/描述包（含 `roplat_description`）与消息包尚未发布，必须使用匹配源码。已发布 `robot_behavior 0.8.1` / `roplat 0.5.1` 项目使用 [`main` 技能](https://github.com/Robot-Exp-Platform/roplat-skills/tree/main)，不要直接套用本分支的新采样 API。
 
-0.9 的契约包仍需 nightly（`async_trait_bounds`）；`generic_const_exprs` 已移到 `roplat_kinematics`。控制器、运动学和轨迹分别来自 `roplat_control`、`roplat_kinematics`、`roplat_trajectory`，不再从契约包导入。
+0.9 的契约包仍需 nightly（`async_trait_bounds`）；各包已不再使用 `generic_const_exprs`（nightly-2026-10-20 的新 trait solver 不支持它），自己的 crate 也不要再开启。控制器、运动学和轨迹分别来自 `roplat_control`、`roplat_kinematics`、`roplat_trajectory`，不再从契约包导入。
 
 ## 按意图选择
 

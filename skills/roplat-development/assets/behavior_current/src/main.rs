@@ -1,7 +1,5 @@
 //! Finite 0.9 source example: a simulated planar arm and pure-data algorithms.
 //! No hardware, model file, renderer or simulator process is opened.
-#![allow(incomplete_features)]
-#![feature(generic_const_exprs)]
 
 use roplat::RoplatResult;
 use roplat::rhythm::IntoRhythm;
