@@ -1,3 +1,5 @@
+# The examples build roplat and roplat_behavior from source, which use
+# nightly features; pin the date the ecosystem is tested on.
 [toolchain]
-channel = "nightly"
+channel = "nightly-2026-10-20"
 components = ["clippy", "rustfmt"]
