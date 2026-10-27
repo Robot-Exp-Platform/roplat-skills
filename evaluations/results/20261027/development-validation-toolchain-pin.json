@@ -1,0 +1,88 @@
+{
+  "date": "2026-10-27",
+  "branch": "next",
+  "base_next_commit": "65487acce240e2acc179f8548c552c40c38e6ce9",
+  "scope": "Pin the three source examples to nightly-2026-10-20 (the core's and the ecosystem's toolchain). control_layers had no rust-toolchain.toml and the other two floated on `nightly`, so the result depended on the machine's default toolchain.",
+  "toolchain": "nightly-2026-10-20 from the examples' rust-toolchain.toml; rustup default on the machine is stable, RUSTUP_TOOLCHAIN unset",
+  "platform": "macOS 27 arm64 (provisional:mac-keeper-20261026), Apple clang 21",
+  "source_commits": {
+    "roplat": {
+      "commit": "047c75d5efc5ded0f0afceb34142da3c573f5fc4",
+      "note": "frozen set 2026.10-sim.1, tag sim-2026.10.27"
+    },
+    "roplat_behavior": {
+      "commit": "fe9b2dd6b574b9587d665910fadbe29f158ba7aa",
+      "note": "frozen set 2026.10-sim.1, tag sim-2026.10.27"
+    }
+  },
+  "source_validation": {
+    "command": [
+      "python3",
+      "skills/roplat-development/scripts/verify_examples.py",
+      "--roplat",
+      "<core>",
+      "--behavior",
+      "<behavior>"
+    ],
+    "returncode": 0,
+    "examples": {
+      "control_layers": [
+        {
+          "step": "run",
+          "returncode": 0
+        },
+        {
+          "step": "clippy",
+          "returncode": 0
+        }
+      ],
+      "robot_apps": [
+        {
+          "step": "run",
+          "returncode": 0
+        },
+        {
+          "step": "clippy",
+          "returncode": 0
+        }
+      ],
+      "behavior_current": [
+        {
+          "step": "run",
+          "returncode": 0
+        },
+        {
+          "step": "clippy",
+          "returncode": 0
+        }
+      ]
+    },
+    "note": "Online: the local Cargo cache lacked async-trait 0.1.92, so --offline could not resolve (as on the Linux server).",
+    "reported_rustc": [
+      "rustc 1.101.0-nightly (07e526db9 2026-10-19)"
+    ]
+  },
+  "negative_checks": [
+    {
+      "test": "default-stable-before-pin",
+      "description": "Same command at tag sim-2026.10.27 (383a677) with rustup default stable and RUSTUP_TOOLCHAIN unset",
+      "returncode": 1,
+      "error": "error[E0658]: use of unstable library feature `atomic_try_update` (roplat/src/media/pool.rs) while building control_layers"
+    },
+    {
+      "test": "explicit-toolchain-before-pin",
+      "description": "Same command at 383a677 with RUSTUP_TOOLCHAIN=nightly-2026-10-20",
+      "returncode": 0
+    }
+  ],
+  "validated_file_sha256_lf": {
+    "skills/roplat-development/assets/control_layers/rust-toolchain.toml": "c33f447804f45dbf5be172eaed0ca3b9e163a266e3c0ee675e1d53a18dffd21c",
+    "skills/roplat-development/assets/robot_apps/rust-toolchain.toml": "c33f447804f45dbf5be172eaed0ca3b9e163a266e3c0ee675e1d53a18dffd21c",
+    "skills/roplat-development/assets/behavior_current/rust-toolchain.toml": "c33f447804f45dbf5be172eaed0ca3b9e163a266e3c0ee675e1d53a18dffd21c"
+  },
+  "limits": [
+    "Example sources and lockfiles unchanged; only the toolchain files.",
+    "Windows and Linux not re-run after the pin; both validated earlier with RUSTUP_TOOLCHAIN=nightly-2026-10-20, which the pin now makes the default inside the example projects.",
+    "No hardware, GUI or foreign-language runtime."
+  ]
+}

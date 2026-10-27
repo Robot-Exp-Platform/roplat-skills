@@ -30,6 +30,8 @@ python3 skills/roplat-development/scripts/verify_examples.py \
 
 ## 使用验收记录
 
+2026-10-27（续）：三个例程的 `rust-toolchain.toml` 固定为 `nightly-2026-10-20`（与核心及生态一致）。此前 control_layers 没有该文件、另两个跟随浮动的 `nightly`，结果取决于机器默认工具链：默认为 stable 的 macOS 上 control_layers 编译核心时报 E0658。固定后不设 `RUSTUP_TOOLCHAIN` 也通过，见[工具链固定验证](evaluations/results/20261027/development-validation-toolchain-pin.json)；例程源码与锁文件未改。
+
 2026-10-27：`next` 同步生态 P0 开发分支（核心 `102fb36`、行为库 `e9ef616`，已分别经 roplat#76、roplat_behavior#18 合入 main，树一致）：嵌套消息头文件自动包含依赖、`roplat_msgs::Clock` 时钟源、`roplat_description`（URDF 模型）以及夹爪/力矩/IMU/相机契约。三个例程在这两个提交上复验通过，见[开发线验证](evaluations/results/20261027/development-validation.json)；例程尚未直接使用新增 API。
 
 2026-10-26：按 `main` 发布线 / `next` 开发线分离维护。`next` 的 robot_apps 已整体迁到 roplat_behavior 0.9，包括原有六种应用结构；behavior_current 验证拆包、Pose/采样访问器、DH 映射和模型选择。当前源码基线为核心 `78fd47e`、行为库 `ef95abc`，本分支验收见[开发线验证](evaluations/results/20261026/development-validation.json)。前序混合审计记录保留为历史，不代替本分支验证。未进行真机或外语运行验收。
