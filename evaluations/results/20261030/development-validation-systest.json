@@ -1,0 +1,44 @@
+{
+  "date": "2026-10-30",
+  "branch": "next",
+  "tested_commit": "963ead6bea492895ceb749dbe4eb84237a96af23",
+  "version_set": "2026.10-systest.1",
+  "scope": "Three finite source examples (control_layers, robot_apps, behavior_current) built, run and linted with strict Clippy on nightly-2026-10-20 against the core and behavior commits below (the roplat_behavior 0.10 restructure). Source paths verified using Cargo metadata.",
+  "source_commits": {
+    "roplat": {
+      "commit": "75ae3164f9e6f431e237f29c07456e63aad940cd",
+      "branch": "claude/msgs-limits"
+    },
+    "roplat_behavior": {
+      "commit": "2314b1ced75b2b8db7865d363778e6044320e0d0",
+      "branch": "claude/behavior-0.10"
+    }
+  },
+  "runner": "roplat-distro tools/run_set.py (test skills-examples); Linux run over SSH on the system test server (S1)",
+  "results": [
+    {
+      "platform": "windows-msvc",
+      "host": "YixingPC",
+      "started": "2026-10-30T03:56:33+08:00",
+      "rustc": "rustc 1.99.0-nightly (c4af71034 2026-07-06)",
+      "command": "C:/Python312/python.exe skills/roplat-development/scripts/verify_examples.py --roplat E:/yixing/code/Robot-Exp/.work/release-20261030/ws/roplat --behavior E:/yixing/code/Robot-Exp/.work/release-20261030/ws/roplat_behavior --offline",
+      "exit": 0,
+      "seconds": 10,
+      "status": "pass"
+    },
+    {
+      "platform": "ubuntu-22.04",
+      "host": "robot-TG558V3",
+      "started": "2026-10-30T03:56:42+08:00",
+      "rustc": "rustc 1.101.0-nightly (07e526db9 2026-10-19)",
+      "command": "nice -n 19 /home/robot/miniconda3/bin/python skills/roplat-development/scripts/verify_examples.py --roplat /home/robot/roplat-systest-20261030/ws/roplat --behavior /home/robot/roplat-systest-20261030/ws/roplat_behavior --offline",
+      "exit": 0,
+      "seconds": 74,
+      "status": "pass"
+    }
+  ],
+  "notes": [
+    "robot_apps asserts that a 2 ms control loop never waits half a 40 ms planner solve; one of five Windows runs on 2026-10-30 measured 20.13 ms against the 20 ms bound and failed, the other four passed. Timing-sensitive on a loaded desktop.",
+    "Not covered: hardware, GUI, backend model load, recording/replay, foreign-language runtime, real-time acceptance."
+  ]
+}
