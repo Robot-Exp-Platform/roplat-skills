@@ -1,16 +1,17 @@
-//! Finite 0.9 source example: a simulated planar arm and pure-data algorithms.
+//! Finite 0.10 source example: a simulated planar arm and pure-data algorithms.
 //! No hardware, model file, renderer or simulator process is opened.
 
 use roplat::RoplatResult;
 use roplat::rhythm::IntoRhythm;
 use roplat_behavior::roplat::MotionNode;
 use roplat_behavior::{
-    ForwardKinematics, JointSample, JointSpace, JointState, ModelFormat, ModelSource, MoveTo, Pose,
-    Robot, RobotDescription, RobotResult, SimulationModel, SpatialSample, select_simulation_model,
+    ForwardKinematics, JointSample, JointSpace, JointState, ModelFormat, MoveTo, Pose, Robot,
+    RobotDescription, RobotResult, SimulationModel, SpatialSample,
 };
 use roplat_control::joint_pd_control;
+use roplat_control::target::constant_joint_target_fn;
 use roplat_kinematics::{ArmForwardKinematics, DhParam};
-use roplat_trajectory::path_generate::constant_joint_target_fn;
+use roplat_world::{ModelSource, select_simulation_model};
 use std::time::Duration;
 
 struct PlanarArm {

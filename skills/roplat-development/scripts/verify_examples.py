@@ -18,7 +18,8 @@ import tempfile
 import tomllib
 
 TRACKED = ("roplat", "roplat_native", "robot_behavior", "roplat_behavior",
-           "roplat_msgs", "roplat_kinematics", "roplat_control", "roplat_trajectory")
+           "roplat_msgs", "roplat_kinematics", "roplat_control", "roplat_trajectory",
+           "roplat_world")
 PROFILES = {"current": ("control_layers", "robot_apps", "behavior_current")}
 
 
@@ -124,7 +125,7 @@ def main():
     patches.update({name: (args.roplat / name).expanduser().resolve()
                     for name in ("roplat", "roplat_msgs")})
     patches.update({name: (args.behavior / name).expanduser().resolve()
-                    for name in ("roplat_behavior", "roplat_kinematics", "roplat_control", "roplat_trajectory")})
+                    for name in ("roplat_behavior", "roplat_kinematics", "roplat_control", "roplat_world")})
     for item in args.patch:
         crate, separator, path = item.partition("=")
         source = Path(path).expanduser().resolve()
