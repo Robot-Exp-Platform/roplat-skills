@@ -23,7 +23,7 @@ impl SimArm {
     pub fn new(q: Joints) -> Self {
         Self {
             q,
-            period: Duration::from_secs_f64(Self::CONTROL_PERIOD),
+            period: Self::CONTROL_PERIOD,
             connected: false,
             faults: 0,
         }
@@ -66,7 +66,7 @@ impl Lifecycle for SimArm {
 
 impl Robot for SimArm {
     type State = JointState<DOF>;
-    const CONTROL_PERIOD: f64 = 0.002;
+    const CONTROL_PERIOD: Duration = Duration::from_millis(2);
 
     fn version() -> String {
         "sim-arm".into()

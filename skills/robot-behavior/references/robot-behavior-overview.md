@@ -112,7 +112,7 @@ pub struct StateView<T> {
 - `CenterOfMassSpace` -> `[f64; 3]`
 - `GaitSpace` -> `GaitCommand`
 - `FootSpace<LEG>` / `HandSpace<HAND>` -> `Pose`
-- `Relative<S>` / `Inertial<S>` 包装空间坐标语义
+- `Relative<S>` 表示相对运动：`move_to::<Relative<JointSpace<N>>>(dq)` 以 `Arm::state()` 的实测位置为起点，`move_to::<Relative<FlangeSpace>>(delta)` 以 `EndPointPose::read_endpoint()` 为起点、`delta` 在法兰系中表达；契约为所有机器人统一实现（0.10 删除了 `Coord` 与 `Inertial<S>`）
 
 `MoveTo<S>`：
 
@@ -210,13 +210,12 @@ observer 看完整 `Robot::State`，不是某个 `ControlSpace::Obs`。驱动负
 - `pose_traj_target_fn`
 - `pose_path_target_fn`
 
-`roplat_trajectory` 提供 COPP 规划和位置控制闭包：
+`roplat_trajectory` 提供 COPP 规划与轨迹跟随：
 
-- `plan_waypoints_traj_via_copp`
-- `plan_path_traj_via_copp`
-- `joint_traj_position_control`
-- `copp_waypoints_joint_position_control`
-- `copp_path_joint_position_control`
+- `plan_waypoints_traj_via_copp(&waypoints, &limits, period)`、`plan_path_traj_via_copp`：接收 `&JointLimits<N>` 与控制周期，返回按周期采样的轨迹；速度与加速度上限必须有限
+- `JointTrajectoryFollower`：按 `Clock` 播放带时间的点；没有时钟的驱动用 `JointTrajectoryFollower::cycle_timed(points_from_samples(&plan, period))`，每个周期调用 `step_by(dt, &state)`
+
+0.10 删除了 `joint_traj_position_control` 与 `copp_*_joint_position_control`。
 
 ## 模型映射
 
@@ -305,6 +304,6 @@ Node / Rhythm / 资源的创建层负责启用与关闭；在 System 内创建�
 
 ## 仿真能力与模型路径
 
-`PhysicsEngine` 负责推进世界，`SimulationBackend` 声明加载器 ID 与支持格式；`RobotDescription::SIMULATION_MODELS` 提供 URDF / MJCF / SDF 声明。`select_simulation_model` 优先后端专用模型，再选通用格式，最后仅对接受 URDF 的后端使用旧 `URDF` 回退。选择只校验声明交集，不转换文件或证明动力学等价；相对模型路径由后端的搜索规则解析。已选模型加载失败应报错，不能静默换模型。
+世界相关契约在 `roplat_world`：`PhysicsEngine` 负责推进世界，`SimulationBackend` 声明加载器 ID 与支持格式，`select_simulation_model` 也在这里；`RobotDescription`、`ModelFormat`、`SimulationModel` 仍在 `roplat_behavior`。`RobotDescription::SIMULATION_MODELS` 提供 URDF / MJCF / SDF 声明。`select_simulation_model` 优先后端专用模型，再选通用格式，最后仅对接受 URDF 的后端使用旧 `URDF` 回退。选择只校验声明交集，不转换文件或证明动力学等价；相对模型路径由后端的搜索规则解析。已选模型加载失败应报错，不能静默换模型。
 
-开启 `roplat` feature 后，`roplat_behavior::roplat::SimulationRhythm::logical(engine).with_max_steps(n)` 拥有引擎，每个成功的 `step()` 后才向域发出 `()`；Input / Yield / Feed / Output / Resources 均为 `()`。`new(engine, interval)` 控制墙钟节奏，物理步长独立由 `engine.set_step_time(dt)` 设置。步数预算每次 drive 重置，世界状态不重置；引擎失败时该步不调用下游域。节律不自动 reset 或调用消耗引擎的 shutdown，后端用 RAII 清理，或在图外通过 `into_engine()` 显式收尾。具体后端的命令/状态刷新顺序及与真机的等价性仍须单独验证；本技能有限例程没有运行物理后端。
+开启 `roplat_world` 的 `roplat` feature 后，`roplat_world::SimulationRhythm::logical(engine).with_max_steps(n)` 拥有引擎，每个成功的 `step()` 后才向域发出 `()`；Input / Yield / Feed / Output / Resources 均为 `()`。`new(engine, interval)` 控制墙钟节奏，物理步长独立由 `engine.set_step_time(dt)` 设置。步数预算每次 drive 重置，世界状态不重置；引擎失败时该步不调用下游域。节律不自动 reset 或调用消耗引擎的 shutdown，后端用 RAII 清理，或在图外通过 `into_engine()` 显式收尾。具体后端的命令/状态刷新顺序及与真机的等价性仍须单独验证；本技能有限例程没有运行物理后端。

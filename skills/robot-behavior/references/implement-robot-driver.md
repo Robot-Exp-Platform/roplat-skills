@@ -71,12 +71,14 @@ Implement:
 impl Robot for MyRobot {
     type State = MyState;
 
-    const CONTROL_PERIOD: f64 = 0.001;
+    const CONTROL_PERIOD: Duration = Duration::from_millis(1);
 
     fn version() -> String { ... }
     fn read_state(&mut self) -> RobotResult<Self::State> { ... }
 }
 ```
+
+A control callback's `Duration` is `CONTROL_PERIOD`, the first cycle included, or `(k + 1)` periods after `k` missed cycles. Extrapolating commands across missed cycles is the driver's job, adapted to its robot.
 
 Override lifecycle methods only when the backend has real semantics:
 

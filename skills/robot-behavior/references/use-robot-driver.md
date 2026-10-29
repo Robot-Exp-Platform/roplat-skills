@@ -80,7 +80,7 @@ Use these spaces first:
 - legged robots: `GaitSpace`, `FootSpace<LEG>`
 - humanoids/hands: `HandSpace<HAND>`, `CenterOfMassSpace`
 
-Use `Relative<S>` or `Inertial<S>` only if the driver implements that wrapped space.
+Relative moves are `move_to::<Relative<JointSpace<N>>>(dq)` (from the measured positions) and `move_to::<Relative<FlangeSpace>>(delta)` (from `read_endpoint()`, `delta` in the flange frame); the contract implements both for every robot.
 
 ## Trajectory Pattern
 
@@ -104,15 +104,23 @@ robot.move_waypoints::<JointSpace<7>>(waypoints)?;
 
 If the driver reports `UnprocessableInstructionError`, treat the capability as unsupported instead of silently switching to another motion mode.
 
-For COPP-backed position commands, use:
+For COPP-backed position commands, plan with the robot's limits and control period, then follow the plan in a control session:
 
 ```rust
-let controller =
-    roplat_trajectory::copp_waypoints_joint_position_control::<R, 7>(
-        &waypoints,
-        0.2,
-    )?;
-robot.control_with::<JointPositionControl<7>, _>(controller)?;
+use std::ops::ControlFlow;
+use roplat_trajectory::{JointTrajectoryFollower, plan_waypoints_traj_via_copp, points_from_samples};
+
+let period = R::CONTROL_PERIOD;
+let plan = plan_waypoints_traj_via_copp(&waypoints, &robot.motion_limits().scaled_joint(), period)
+    .map_err(RobotException::from_algorithm)?;
+let mut follower = JointTrajectoryFollower::cycle_timed(points_from_samples(&plan, period))
+    .map_err(RobotException::from_algorithm)?;
+robot.control_with_flow::<JointPositionControl<7>, _>(|state, dt| {
+    match follower.step_by(dt, &state) {
+        Ok(step) => ControlFlow::Continue(step),
+        Err(_) => ControlFlow::Break(()), // keep the error to report it after the session
+    }
+})?;
 ```
 
 ## Realtime Control Pattern
