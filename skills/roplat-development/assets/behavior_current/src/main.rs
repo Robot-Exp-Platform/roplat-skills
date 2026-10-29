@@ -19,7 +19,7 @@ struct PlanarArm {
 
 impl Robot for PlanarArm {
     type State = JointState<2>;
-    const CONTROL_PERIOD: f64 = 0.002;
+    const CONTROL_PERIOD: Duration = Duration::from_millis(2);
     fn version() -> String {
         "skill-simulated-arm".into()
     }

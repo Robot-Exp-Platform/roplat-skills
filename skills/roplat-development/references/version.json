@@ -1,11 +1,11 @@
 {
-  "checked_on": "2026-10-27",
+  "checked_on": "2026-10-30",
   "status": "development-validated",
   "current_source": {
     "roplat_version": "0.6.0-rc.1",
     "roplat_behavior_version": "0.9.0",
-    "roplat_commit": "047c75d5efc5ded0f0afceb34142da3c573f5fc4",
-    "roplat_behavior_commit": "fe9b2dd6b574b9587d665910fadbe29f158ba7aa",
+    "roplat_commit": "75ae3164f9e6f431e237f29c07456e63aad940cd",
+    "roplat_behavior_commit": "2314b1ced75b2b8db7865d363778e6044320e0d0",
     "unpublished_packages": [
       "roplat_behavior",
       "roplat_kinematics",
@@ -13,13 +13,18 @@
       "roplat_trajectory",
       "roplat_description",
       "roplat_msgs",
-      "roplat_native"
+      "roplat_native",
+      "roplat_frames",
+      "roplat_safety",
+      "roplat_scene",
+      "roplat_world",
+      "roplat_behavior_ffi"
     ],
     "profile": "current",
     "source_paths_required": true,
-    "note": "Core claude/core-0.6.0-rc.1 and behavior claude/roplat-0.6.0-rc.1 (generic_const_exprs removed), stacked on the nightly-2026-10-20 toolchain pins; not yet merged. The core source is 0.6.0-rc.1 and differs from the published 0.5.1. Preserve source identity."
+    "note": "Core claude/msgs-limits (JointLimits jerk and effort-rate bounds, CartesianLimits) and behavior claude/behavior-0.10 (the 0.10 restructure; crates still numbered 0.9.0), the candidate of version set 2026.10-systest.1; not yet merged. Preserve source identity."
   },
-  "validation_evidence": "evaluations/results/20261027/development-validation-rc1.json",
+  "validation_evidence": "evaluations/results/20261030/development-validation-systest.json",
   "scope": "Finite mock/pure-data examples plus run and strict Clippy. No hardware, GUI, backend model load, recording/replay, foreign-language runtime or real-time acceptance.",
   "validation": "scripts/verify_examples.py",
   "examples": [
@@ -27,5 +32,6 @@
     "assets/robot_apps",
     "assets/behavior_current"
   ],
-  "branch": "next"
+  "branch": "next",
+  "version_set": "2026.10-systest.1"
 }
