@@ -9,6 +9,8 @@
 - roplat_behavior#45：手眼标定；
 - roplat_behavior#46：凹形物体；
 - roplat_behavior#48：抓取成功判据；
+- roplat_behavior#49：路径简化与平滑；
+- rsbullet#21：仿真中的笛卡尔位姿控制；
 - 各驱动仓的 main。
 
 按 [version.json](version.json) 的约定保留源码身份。
@@ -27,6 +29,7 @@
 | 相机安装位置标定 | `roplat_frames::calibration::calibrate_hand_eye` | easy_handeye、MoveIt Calibration |
 | 按时间播放工具位姿轨迹 | `roplat_control::{CartesianTrajectoryFollower, cartesian_line}` | 笛卡尔轨迹控制器 |
 | 判断是否抓住 | `roplat_grasp::{GraspCheck, carried_mass}` | 各夹爪驱动各自的判断 |
+| 规划后删去多余路点、圆滑拐角 | `roplat_trajectory::{simplify_path, smooth_path}` | OMPL 的路径简化器 |
 | 频率、延迟、健康状态 | `roplat_diagnostics` | topic hz/delay、diagnostic_updater/aggregator |
 | Robotiq 2F 夹爪 / ATI 力传感器 / WitMotion IMU | `librobotiq` / `libatift` / `libwitmotion` | 厂商驱动包 |
 
@@ -92,7 +95,23 @@ robot.control_with_flow::<CartesianPoseControl, _>(|state, dt| match follower.st
 ```
 
 - 路点的坐标系与驱动的 `CartesianPoseControl` 一致，一般是法兰在基座系中的位姿；容差与测得的法兰位姿比较。
+- 仿真中，rsbullet 的 `RsBulletDevice` 实现 `CartesianPoseControl`：每周期用 Bullet 逆解把法兰位姿（末端连杆在世界系中的位姿）转为位置电机目标，可以先在仿真里验证笛卡尔控制器。
+- 在多个线程里同时建 rsbullet 仿真世界并加载带 OBJ 网格的模型（如 Panda）会崩溃，因为 Bullet 的 OBJ 缓存是进程级且无锁的。在库层修复之前，请依次加载。
 - 超出容差时返回错误，不修改命令；要停止就 `Break`。
+
+## 路径简化与平滑
+
+```rust
+use roplat_trajectory::{plan_joint_path, simplify_path, smooth_path};
+
+let path = plan_joint_path(start, goal, lower, upper, |q| scene.is_free(q), options)?;
+let path = simplify_path(&path, options.resolution, |q| scene.is_free(q));   // 删去直线可跳过的路点
+let path = smooth_path(&path, 3, options.resolution, |q| scene.is_free(q));  // 圆滑拐角，2–4 轮通常够用
+// 再交给 plan_waypoints_traj_via_copp 定时
+```
+
+- 两者都保持端点不变，并检查每一段新路径。拐角处的切割弦无效时，依次改用八分之一、十六分之一的切割，仍无效则保留拐角，所以贴近障碍物的路径不会被拉穿。
+- 每轮平滑后路点约翻倍。
 
 ## 判断是否抓住
 
