@@ -29,6 +29,7 @@
 - roplat_behavior#65：按统计去除离群点；
 - roplat_behavior#66：点到面 ICP；
 - roplat_behavior#67：放置规划；
+- roplat_behavior#68：按速度与加速度限制定时的笛卡尔直线与圆弧；
 - 各驱动仓的 main（含新仓 libspacemouse-rs、libdhgripper-rs）。
 
 按 [version.json](version.json) 的约定保留源码身份。
@@ -181,6 +182,7 @@ robot.control_with_flow::<CartesianPoseControl, _>(|state, dt| match follower.st
 
 - 路点的坐标系与驱动的 `CartesianPoseControl` 一致，一般是法兰在基座系中的位姿；容差与测得的法兰位姿比较。
 - 圆弧用 `cartesian_arc(&from, &via, &to, duration, period)`：从 `from` 经过 `via` 到 `to` 的圆弧，时间律与 `cartesian_line` 相同（起止静止）。`via` 只约束位置（`Point3`），姿态从 `from` 球面插值到 `to`，与 Pilz CIRC 的 interim 点相同。三点共线或有两点重合时返回 `None`，整圆要分成两段。
+- 按速度与加速度限制定时（Pilz 的做法）时用 `cartesian_line_within(&from, &to, &limits, period)` 或 `cartesian_arc_within(&from, &via, &to, &limits, period)`，`limits` 为 `CartesianLimits { linear_speed, linear_acceleration, angular_speed, angular_acceleration }`：取四项限制都满足的最短时长，圆弧按弧长计算。只要时长时用 `limits.minimum_jerk_duration(length, angle)`。
 - 仿真中，rsbullet 的 `RsBulletDevice` 实现 `CartesianPoseControl`：每周期用 Bullet 逆解把法兰位姿（末端连杆在世界系中的位姿）转为位置电机目标，可以先在仿真里验证笛卡尔控制器。
 - 在多个线程里同时建 rsbullet 仿真世界并加载带 OBJ 网格的模型（如 Panda）会崩溃，因为 Bullet 的 OBJ 缓存是进程级且无锁的。在库层修复之前，请依次加载。
 - 超出容差时返回错误，不修改命令；要停止就 `Break`。
