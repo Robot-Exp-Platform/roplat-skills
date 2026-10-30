@@ -23,6 +23,9 @@
 - roplat_behavior#59：从深度图到取放的集成测试；
 - roplat_behavior#60：占据栅格；
 - roplat_behavior#61：笛卡尔圆弧；
+- roplat_behavior#62：镜头畸变与图像校正；
+- roplat_behavior#63：表面法向与光滑区域；
+- roplat_behavior#64：深度图配准到彩色相机；
 - 各驱动仓的 main（含新仓 libspacemouse-rs、libdhgripper-rs）。
 
 按 [version.json](version.json) 的约定保留源码身份。
@@ -41,10 +44,13 @@
 | 料箱、货架等凹形物体进场景 | `PlanningScene::add_concave_object`、`add_trimesh` | MoveIt 的网格碰撞物体 |
 | 相机安装位置标定 | `roplat_frames::calibration::calibrate_hand_eye` | easy_handeye、MoveIt Calibration |
 | 棋盘格角点与标定板位姿 | `roplat_frames::target::{detect_chessboard, target_pose}` | OpenCV `findChessboardCorners`、`solvePnP` |
+| 去除镜头畸变、校正图像 | `roplat_frames::lens::{Rectify, undistort, rectified}` | image_proc 的 rectify、OpenCV `undistortPoints` |
+| 深度图配准到彩色相机 | `roplat_scene::points::register_depth` | depth_image_proc/register |
 | 整段检查一段关节直线运动（不按分辨率采样） | `PlanningScene::motion_is_free`、`roplat_trajectory::{plan_joint_motion, plan_cartesian_motion}`、`roplat_grasp::plan_pick_motion` | FCL 连续碰撞检测 |
 | 在三维视图中看规划场景与点云 | `PlanningScene::meshes`、`roplat_rerun::{log_scene, log_points}` | RViz 的规划场景与点云显示 |
 | 桌面与桌上物体的分割和形状拟合 | `roplat_perception::segment_tabletop` | PCL 桌面分割、tabletop_object_detector |
 | 已知模型的位姿精修 | `roplat_perception::icp` | PCL / Open3D ICP |
+| 表面法向与曲率；把相接触的物体按表面分开 | `roplat_perception::{estimate_normals, smooth_regions}` | PCL 的 NormalEstimation、RegionGrowing |
 | 深度读数去掉机械臂自身 | `PlanningScene::without_robot_points` | MoveIt 的 self filter |
 | 某一对连杆或物体单独的安全间隙 | `PlanningScene::set_pair_padding` | MoveIt 的 padding（那里按连杆，这里按物体对） |
 | 凹形连杆（张开的手掌、中空工具） | `PlanningScene::decompose_link` | 网格碰撞几何 |
@@ -85,7 +91,8 @@ let points = depth_to_points(&depth_m, &camera_info, 0.1..=2.0, 2);  // 光学�
 scene.add_points("seen", &points, 0.02, camera_pose_in_world)?;      // 2 cm 体素
 ```
 
-- 深度图须已校正，函数不处理畸变。
+- 深度图须已校正，函数不处理畸变。原始深度图用 `roplat_frames::lens::Rectify::new(&info)?.nearest(&raw, f32::NAN)` 校正（深度取最近像素，不插值，否则物体边缘会出现悬空的点），内参改用 `lens::rectified(&info)`。
+- 深度相机与彩色相机分开安装时，`register_depth(&depth, &depth_info, &colour_info, &depth_in_colour)` 把深度图重投影到彩色相机，得到与彩色图逐像素对应的深度；`depth_in_colour` 是深度相机光学系在彩色相机光学系中的位姿（外参）。彩色相机看得到、深度相机被前方物体挡住的像素为 NaN。
 - 仿真中，用 `sim.render_rgbd(&spec)` 得到公制深度；`spec.info()` 给出与渲染一致的内参，`spec.pose` 是光学系在世界中的位姿，可直接作为 `add_points` 的 `pose`。没有命中的像素为无穷大，函数会自动跳过。
 - 新读数要替换旧读数时，先 `remove_object("seen")` 再重新添加；要让多帧读数累积、移走的物体自动消失，用下面的占据栅格。
 - 相机装在臂上时，用图像时刻的相机位姿，而不是处理时的位姿：开启 `roplat_frames` 的 feature `scene` 后，`scene::add_sensed_points(&buffer, &mut scene, "seen", &points, 0.02, WORLD, CAMERA, image_stamp)` 从记录的关节状态插值出该时刻的相机位姿；被跟踪的物体用 `scene::place_objects` 移到其坐标系在某一时刻的位姿。
@@ -137,7 +144,7 @@ samples.push(HandEyeSample { flange: flange_pose, target: target.pose });
 ```
 
 - 角点顺序在各视角下一致：第一个角点挨着深色的角上方格。这要求 `columns + rows` 为奇数（如 OpenCV 常用的 9×6）；为偶数时只能确定到相差半圈。
-- 图像须已校正（不处理畸变）。方格在图像中小于约 10 像素时，调 `DetectOptions` 的 `radius` 与 `blur`。ChArUco、AprilTag（部分可见、带编号）仍需 OpenCV 等外部检测器。
+- 图像须已校正：原始图像先用 `Rectify::new(&info)?.bilinear(&raw, 1)` 校正，再用 `lens::rectified(&info)` 求位姿；或在原图上检测，用 `lens::undistort(&info, p)` 处理每个角点后再求位姿。畸变不处理时，测试中角点偏 7–11 像素的镜头使位姿差 7–8 mm。方格在图像中小于约 10 像素时，调 `DetectOptions` 的 `radius` 与 `blur`。ChArUco、AprilTag（部分可见、带编号）仍需 OpenCV 等外部检测器。
 - 眼在手外（相机固定）时用 `HandEye::EyeToHand`，结果是相机在基座系中的位姿。
 
 ```rust
@@ -192,6 +199,7 @@ for (k, object) in found.objects.iter().enumerate() {
 - 流程：5 mm 体素降采样；RANSAC 找在 `up` 方向 0.2 rad 内水平的主平面作为桌面；取桌面轮廓上方 1–50 cm 的点；按 2 cm 间隙聚类；每个聚类拟合立在桌上的长方体（轮廓最小面积矩形）或直立圆柱（轮廓圆拟合），取轮廓吻合更好的一种。
 - 点必须在已知 `up` 方向的坐标系中（世界或基座），不能是相机光学系。
 - 相互接触的物体会合成一个聚类；形状只有长方体与圆柱两种，物体底面视为落在桌面上。
+- 合成一个聚类时，按表面分开：`let normals = estimate_normals(&object.points, 0.012, camera_position);`，再 `smooth_regions(&object.points, &normals, &RegionOptions { radius: 0.012, smoothness: 12f64.to_radians(), min_points: 10, ..Default::default() })`。每个区域是一个光滑表面（长方体的各个面、罐子的侧面与顶面），在棱处分开；对单个表面用 `fit_cylinder_on` 等拟合。测试中罐子紧贴盒子，只用罐子侧面拟合，轴线误差 1.3 mm。把表面重新组合成物体仍需调用方判断。降采样后的点间距为 5 mm 时，半径 3.5 cm 的罐面上相邻点法向约差 8°：用默认的 5°，罐侧分成三块，取最大一块拟合，轴线误差 6.3 mm；取 12° 时罐侧为一块。
 - 已知模型时，用 `icp` 精修位姿：以传感点为 source、完整模型为 target，从猜测位姿的逆出发，结果再取逆。方向反过来时，模型看不见的一面会被拉偏。
 - 发布构建下，一张 320×240 深度图（约 7.7 万点）的分割约 30 ms。
 - 从深度图到规划好的取放的完整流程（去掉臂上的点、分割、物体进场景、`plan_pick_motion`）见 roplat_behavior 的 `roplat_perception/tests/pick_from_depth.rs`。不去掉臂上的点时，桌面上方的前臂会被分割成一个物体。
