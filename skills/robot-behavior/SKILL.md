@@ -19,6 +19,7 @@ roplat_behavior 用类型化能力 trait 描述机器人能做什么：`Robot`�
 | 接入新机器人、重构驱动、补 trait、审查实现语义 | [implement-robot-driver.md](references/implement-robot-driver.md) |
 | 原生异步会话、并发控制节律、嵌套 Tokio runtime 排错 | [native-async-control.md](references/native-async-control.md) |
 | 夹爪、力/力矩、IMU、相机；URDF 模型、限位与正运动学 | [robot-behavior-overview.md](references/robot-behavior-overview.md) 的“末端与传感器契约”“机器人描述” |
+| 抓取与取放规划、命名位姿与末端工具、深度图与点云进场景、运行诊断，以及 Robotiq、ATI、WitMotion 驱动（2026-10-30 加入 main，不在冻结集中） | [manipulation-perception-diagnostics.md](references/manipulation-perception-diagnostics.md) |
 
 两者都先读 [robot-behavior-overview.md](references/robot-behavior-overview.md)：当前 trait、类型与语义速查。
 
