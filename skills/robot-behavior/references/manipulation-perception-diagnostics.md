@@ -28,6 +28,7 @@
 - roplat_behavior#64：深度图配准到彩色相机；
 - roplat_behavior#65：按统计去除离群点；
 - roplat_behavior#66：点到面 ICP；
+- roplat_behavior#67：放置规划；
 - 各驱动仓的 main（含新仓 libspacemouse-rs、libdhgripper-rs）。
 
 按 [version.json](version.json) 的约定保留源码身份。
@@ -39,6 +40,7 @@
 | 命名位姿（home、ready）、末端工具中心点与工具连杆 | `roplat_scene::{NamedPoses, EndEffector}` | SRDF |
 | 抓取候选（长方体、圆柱、球） | `roplat_grasp::grasps` | MoveIt Grasps |
 | 预抓取、接近、抓取、抬起的整段规划 | `roplat_grasp::plan_pick` | MoveIt pick |
+| 带着物体到放置位姿、下放、松开后撤 | `roplat_grasp::plan_place` | MoveIt place |
 | 规划时保持姿态（端杯竖直） | `roplat_trajectory::{AxisConstraint, constrained}` | 路径约束 |
 | 仿真 RGB-D 相机（Bullet 软件渲染，无显示也可用） | `rsbullet::{CameraSpec, RsBullet::render_rgbd, RsBullet::camera}`（实现 `Camera` 契约） | Gazebo 相机插件 |
 | 深度图 → 点 → 场景障碍 | `roplat_scene::points::depth_to_points`、`PlanningScene::add_points` | Octomap 进规划场景 |
@@ -84,6 +86,22 @@ let plan = plan_pick(&scene, &hand, "block", Some("table"), &candidates, start, 
 - `plan_pick` 只做几何规划，不闭合手指，也不给轨迹定时。闭合用 `Gripper::move_gripper`，定时用 `roplat_trajectory` 的 COPP。
 - 失败时 `PickError::attempts` 给出每个候选的失败原因：不可达、碰撞、无路径，或接近、抬起走到一半。按原因调整，不要只加大重试次数。
 - 场景本身不被修改：抬起阶段在副本上附着物体。执行后，在自己的场景里调用 `scene.attach(object, hand.link(), &hand.links(), &plan.grasp_configuration())`。
+
+放下时，在物体已附着的场景里规划：
+
+```rust
+use roplat_grasp::{PlaceOptions, plan_place};
+
+// placements：物体放好后在世界系中的位姿，按优先顺序；要落在支撑面上
+let place = plan_place(&scene, &hand, "block", Some("table"), &placements, *plan.lift.last().unwrap(),
+                       lower, upper, |link_pose, seed| ik_for_link(link_pose, seed), PlaceOptions::default())?;
+// place.to_preplace、place.descent → 执行后用 Gripper 张开；place.retreat → 执行。
+scene.detach("block", &place.release_configuration())?;
+```
+
+- 工具相对物体的位置取自附着关系，即取时所用的抓取；`PlaceFailure::NotHeld` 表示物体没有附着在手上。
+- 下放时允许物体接触 `support`，所以陷进支撑面的放置位姿不会被拒绝：放置位姿要让物体正好落在支撑面上。
+- 松开后沿工具轴后撤 `retreat`（默认 0.1 m）；`plan_place_motion` 对每一段做整段检查。
 
 ## 感知进场景
 
