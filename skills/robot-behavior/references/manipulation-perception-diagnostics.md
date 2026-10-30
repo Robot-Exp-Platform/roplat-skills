@@ -26,6 +26,7 @@
 - roplat_behavior#62：镜头畸变与图像校正；
 - roplat_behavior#63：表面法向与光滑区域；
 - roplat_behavior#64：深度图配准到彩色相机；
+- roplat_behavior#65：按统计去除离群点；
 - 各驱动仓的 main（含新仓 libspacemouse-rs、libdhgripper-rs）。
 
 按 [version.json](version.json) 的约定保留源码身份。
@@ -49,6 +50,7 @@
 | 整段检查一段关节直线运动（不按分辨率采样） | `PlanningScene::motion_is_free`、`roplat_trajectory::{plan_joint_motion, plan_cartesian_motion}`、`roplat_grasp::plan_pick_motion` | FCL 连续碰撞检测 |
 | 在三维视图中看规划场景与点云 | `PlanningScene::meshes`、`roplat_rerun::{log_scene, log_points}` | RViz 的规划场景与点云显示 |
 | 桌面与桌上物体的分割和形状拟合 | `roplat_perception::segment_tabletop` | PCL 桌面分割、tabletop_object_detector |
+| 去掉杂散点与边缘飞点（不必选半径） | `roplat_perception::remove_statistical_outliers` | PCL 的 StatisticalOutlierRemoval |
 | 已知模型的位姿精修 | `roplat_perception::icp` | PCL / Open3D ICP |
 | 表面法向与曲率；把相接触的物体按表面分开 | `roplat_perception::{estimate_normals, smooth_regions}` | PCL 的 NormalEstimation、RegionGrowing |
 | 深度读数去掉机械臂自身 | `PlanningScene::without_robot_points` | MoveIt 的 self filter |
