@@ -17,7 +17,9 @@
 - roplat_behavior#53：点云与桌面分割（新 crate `roplat_perception`）；
 - roplat_behavior#54：机器人自身点滤波与凹形连杆；
 - roplat_behavior#55：标定板检测与位姿；
-- 各驱动仓的 main（含新仓 libspacemouse-rs）。
+- roplat_behavior#56：整段检查的笛卡尔路径与取放规划；
+- roplat_behavior#57、roplat_rerun#9：规划场景与点云在 Rerun 中显示；
+- 各驱动仓的 main（含新仓 libspacemouse-rs、libdhgripper-rs）。
 
 按 [version.json](version.json) 的约定保留源码身份。
 
@@ -34,7 +36,8 @@
 | 料箱、货架等凹形物体进场景 | `PlanningScene::add_concave_object`、`add_trimesh` | MoveIt 的网格碰撞物体 |
 | 相机安装位置标定 | `roplat_frames::calibration::calibrate_hand_eye` | easy_handeye、MoveIt Calibration |
 | 棋盘格角点与标定板位姿 | `roplat_frames::target::{detect_chessboard, target_pose}` | OpenCV `findChessboardCorners`、`solvePnP` |
-| 整段检查一段关节直线运动（不按分辨率采样） | `PlanningScene::motion_is_free`、`roplat_trajectory::plan_joint_motion` | FCL 连续碰撞检测 |
+| 整段检查一段关节直线运动（不按分辨率采样） | `PlanningScene::motion_is_free`、`roplat_trajectory::{plan_joint_motion, plan_cartesian_motion}`、`roplat_grasp::plan_pick_motion` | FCL 连续碰撞检测 |
+| 在三维视图中看规划场景与点云 | `PlanningScene::meshes`、`roplat_rerun::{log_scene, log_points}` | RViz 的规划场景与点云显示 |
 | 桌面与桌上物体的分割和形状拟合 | `roplat_perception::segment_tabletop` | PCL 桌面分割、tabletop_object_detector |
 | 已知模型的位姿精修 | `roplat_perception::icp` | PCL / Open3D ICP |
 | 深度读数去掉机械臂自身 | `PlanningScene::without_robot_points` | MoveIt 的 self filter |
@@ -45,6 +48,7 @@
 | 频率、延迟、健康状态 | `roplat_diagnostics` | topic hz/delay、diagnostic_updater/aggregator |
 | Robotiq 2F 夹爪 / ATI 力传感器 / WitMotion IMU | `librobotiq` / `libatift` / `libwitmotion` | 厂商驱动包 |
 | 3Dconnexion 3D 鼠标遥操作 | `libspacemouse` + `roplat_control::cartesian_teleop_control` | spacenav_node、teleop_twist |
+| 大寰（DH-Robotics）电动夹爪 | `libdhgripper` | 厂商驱动包 |
 
 ## 取放
 
@@ -145,7 +149,7 @@ let path = smooth_motion(&path, 3, |a, b| scene.motion_is_free(a, b));
 
 - 一段运动在离障碍物 0.1 mm（`MOTION_TOLERANCE`）以内就算接触；`motion_contact` 报告的比例之前的位形都无碰撞。
 - `motion_is_free` 先检查终点和每 0.05 rad 的采样，通过后才做证明，所以被挡住的运动很快被拒绝。Panda 上一段 0.2 rad 的自由运动约 0.3 ms，约为 0.02 rad 采样的 1.75 倍；整个规划反而略快，因为拒绝更快。
-- `plan_cartesian_path` 与 `plan_pick` 仍按采样检查。
+- 取放规划用 `plan_pick_motion`（参数与 `plan_pick` 相同）：到预抓取的路径、直线接近与抬起都在各自的场景中整段检查；只做笛卡尔直线时用 `plan_cartesian_motion`。
 
 ## 桌面物体分割
 
@@ -165,6 +169,19 @@ for (k, object) in found.objects.iter().enumerate() {
 - 相互接触的物体会合成一个聚类；形状只有长方体与圆柱两种，物体底面视为落在桌面上。
 - 已知模型时，用 `icp` 精修位姿：以传感点为 source、完整模型为 target，从猜测位姿的逆出发，结果再取逆。方向反过来时，模型看不见的一面会被拉偏。
 - 发布构建下，一张 320×240 深度图（约 7.7 万点）的分割约 30 ms。
+
+## 在 Rerun 中查看场景
+
+```rust
+use roplat_rerun::{log_points, log_scene};
+
+let rec = rerun::RecordingStreamBuilder::new("planning").spawn()?;
+log_scene(&rec, "scene", &scene, &q)?;                         // 场景变化后或每个周期调用
+log_points(&rec, "scene/seen", &points, 0.003, [0, 200, 0])?;  // 加入场景前的深度读数
+```
+
+- 画出的是碰撞检查实际使用的几何：连杆灰、世界物体蓝、附着物体橙。每次调用先清空根实体，已删除的物体随之消失。
+- 不需要仿真器；其他查看器可直接用 `PlanningScene::meshes` 给出的世界系三角网格。
 
 ## 路径简化与平滑
 
@@ -223,7 +240,9 @@ let (probe, handle) = ProbeNode::<State, _>::new(clock.clone(),
 | `libatift`（ATI Net F/T、Axia） | `ForceTorqueSensor` | UDP RDT，端口 49152 | `MockNetFt`（`mock` feature） |
 | `libwitmotion`（WT901、HWT901B、JY901） | `ImuSensor` | 串口，`serial` feature | 由协议生成的字节流 |
 | `libspacemouse`（SpaceMouse Compact、Wireless、Pro、Enterprise，SpaceNavigator 等） | 无契约：给出 `InputAxes`，接 `cartesian_teleop_control` | USB HID，`hid` feature（hidapi） | 录制的 HID 报告 |
+| `libdhgripper`（大寰 AG-160-95、AG-105-145、PGE、PGC、PGI） | `Gripper` | Modbus RTU、RS-485，115200 8N1，从站 1，`serial` feature | `MockDhGripper`（`mock` feature） |
 
 - 三个驱动的测试都运行 `roplat_behavior::conformance` 的契约检查。新驱动照此做：在 dev-dependencies 中开启 roplat_behavior 的 `conformance` feature，对 mock 运行 `check_gripper`、`check_force_torque_sensor` 或 `check_imu`。
 - ATI 的计数换算（counts per force、counts per torque）因标定而异，从传感器网页上的 `netftapi2.xml` 读取后设置，不要直接用默认值 1e6。
+- 大寰夹爪：上电后先 `home_gripper()`（初始化），再 `move_gripper`；力最小为额定值的 20 %。开口 1000‰ 应为全开，到货后按 README 核对方向。
 - SpaceMouse：`SpaceMouse::open(Settings::default())?` 后，把 `move || mouse.next_input()` 交给 `cartesian_teleop_control`，并设 `TeleopMapping::enable_button` 作为手持开关。坐标为 x 右、y 前（推离自己）、z 上；轴的正负方向尚未在实物上核对，先按 README 的步骤检查再接机器人。Linux 需要 hidraw 的 udev 规则。
