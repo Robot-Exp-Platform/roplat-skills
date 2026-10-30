@@ -27,6 +27,7 @@
 - roplat_behavior#63：表面法向与光滑区域；
 - roplat_behavior#64：深度图配准到彩色相机；
 - roplat_behavior#65：按统计去除离群点；
+- roplat_behavior#66：点到面 ICP；
 - 各驱动仓的 main（含新仓 libspacemouse-rs、libdhgripper-rs）。
 
 按 [version.json](version.json) 的约定保留源码身份。
@@ -51,7 +52,7 @@
 | 在三维视图中看规划场景与点云 | `PlanningScene::meshes`、`roplat_rerun::{log_scene, log_points}` | RViz 的规划场景与点云显示 |
 | 桌面与桌上物体的分割和形状拟合 | `roplat_perception::segment_tabletop` | PCL 桌面分割、tabletop_object_detector |
 | 去掉杂散点与边缘飞点（不必选半径） | `roplat_perception::remove_statistical_outliers` | PCL 的 StatisticalOutlierRemoval |
-| 已知模型的位姿精修 | `roplat_perception::icp` | PCL / Open3D ICP |
+| 已知模型的位姿精修 | `roplat_perception::{icp, icp_point_to_plane}` | PCL / Open3D ICP（点到点、点到面） |
 | 表面法向与曲率；把相接触的物体按表面分开 | `roplat_perception::{estimate_normals, smooth_regions}` | PCL 的 NormalEstimation、RegionGrowing |
 | 深度读数去掉机械臂自身 | `PlanningScene::without_robot_points` | MoveIt 的 self filter |
 | 某一对连杆或物体单独的安全间隙 | `PlanningScene::set_pair_padding` | MoveIt 的 padding（那里按连杆，这里按物体对） |
@@ -202,7 +203,7 @@ for (k, object) in found.objects.iter().enumerate() {
 - 点必须在已知 `up` 方向的坐标系中（世界或基座），不能是相机光学系。
 - 相互接触的物体会合成一个聚类；形状只有长方体与圆柱两种，物体底面视为落在桌面上。
 - 合成一个聚类时，按表面分开：`let normals = estimate_normals(&object.points, 0.012, camera_position);`，再 `smooth_regions(&object.points, &normals, &RegionOptions { radius: 0.012, smoothness: 12f64.to_radians(), min_points: 10, ..Default::default() })`。每个区域是一个光滑表面（长方体的各个面、罐子的侧面与顶面），在棱处分开；对单个表面用 `fit_cylinder_on` 等拟合。测试中罐子紧贴盒子，只用罐子侧面拟合，轴线误差 1.3 mm。把表面重新组合成物体仍需调用方判断。降采样后的点间距为 5 mm 时，半径 3.5 cm 的罐面上相邻点法向约差 8°：用默认的 5°，罐侧分成三块，取最大一块拟合，轴线误差 6.3 mm；取 12° 时罐侧为一块。
-- 已知模型时，用 `icp` 精修位姿：以传感点为 source、完整模型为 target，从猜测位姿的逆出发，结果再取逆。方向反过来时，模型看不见的一面会被拉偏。
+- 已知模型时，用 `icp` 精修位姿：以传感点为 source、完整模型为 target，从猜测位姿的逆出发，结果再取逆。方向反过来时，模型看不见的一面会被拉偏。模型由平面组成时改用 `icp_point_to_plane(&near, &model, &estimate_normals(&model, 0.008, [0.0, 0.0, 1.0]), &guess.inverse(), &options)`，参数与结果同 `icp`：测试中盒子配准从 49 次迭代减到 8 次，误差同为 0.1 mm。
 - 发布构建下，一张 320×240 深度图（约 7.7 万点）的分割约 30 ms。
 - 从深度图到规划好的取放的完整流程（去掉臂上的点、分割、物体进场景、`plan_pick_motion`）见 roplat_behavior 的 `roplat_perception/tests/pick_from_depth.rs`。不去掉臂上的点时，桌面上方的前臂会被分割成一个物体。
 
