@@ -19,6 +19,10 @@
 - roplat_behavior#55：标定板检测与位姿；
 - roplat_behavior#56：整段检查的笛卡尔路径与取放规划；
 - roplat_behavior#57、roplat_rerun#9：规划场景与点云在 Rerun 中显示；
+- roplat_behavior#58：按物体对的安全间隙；
+- roplat_behavior#59：从深度图到取放的集成测试；
+- roplat_behavior#60：占据栅格；
+- roplat_behavior#61：笛卡尔圆弧；
 - 各驱动仓的 main（含新仓 libspacemouse-rs、libdhgripper-rs）。
 
 按 [version.json](version.json) 的约定保留源码身份。
@@ -33,6 +37,7 @@
 | 规划时保持姿态（端杯竖直） | `roplat_trajectory::{AxisConstraint, constrained}` | 路径约束 |
 | 仿真 RGB-D 相机（Bullet 软件渲染，无显示也可用） | `rsbullet::{CameraSpec, RsBullet::render_rgbd, RsBullet::camera}`（实现 `Camera` 契约） | Gazebo 相机插件 |
 | 深度图 → 点 → 场景障碍 | `roplat_scene::points::depth_to_points`、`PlanningScene::add_points` | Octomap 进规划场景 |
+| 传感障碍随扫描更新（移走的物体被清除） | `roplat_scene::occupancy::OccupancyMap`、`PlanningScene::set_occupancy` | MoveIt 的 OctoMap 占据地图 |
 | 料箱、货架等凹形物体进场景 | `PlanningScene::add_concave_object`、`add_trimesh` | MoveIt 的网格碰撞物体 |
 | 相机安装位置标定 | `roplat_frames::calibration::calibrate_hand_eye` | easy_handeye、MoveIt Calibration |
 | 棋盘格角点与标定板位姿 | `roplat_frames::target::{detect_chessboard, target_pose}` | OpenCV `findChessboardCorners`、`solvePnP` |
@@ -41,8 +46,9 @@
 | 桌面与桌上物体的分割和形状拟合 | `roplat_perception::segment_tabletop` | PCL 桌面分割、tabletop_object_detector |
 | 已知模型的位姿精修 | `roplat_perception::icp` | PCL / Open3D ICP |
 | 深度读数去掉机械臂自身 | `PlanningScene::without_robot_points` | MoveIt 的 self filter |
+| 某一对连杆或物体单独的安全间隙 | `PlanningScene::set_pair_padding` | MoveIt 的 padding（那里按连杆，这里按物体对） |
 | 凹形连杆（张开的手掌、中空工具） | `PlanningScene::decompose_link` | 网格碰撞几何 |
-| 按时间播放工具位姿轨迹 | `roplat_control::{CartesianTrajectoryFollower, cartesian_line}` | 笛卡尔轨迹控制器 |
+| 按时间播放工具位姿轨迹；直线与圆弧 | `roplat_control::{CartesianTrajectoryFollower, cartesian_line, cartesian_arc}` | 笛卡尔轨迹控制器；Pilz 的 LIN、CIRC |
 | 判断是否抓住 | `roplat_grasp::{GraspCheck, carried_mass}` | 各夹爪驱动各自的判断 |
 | 规划后删去多余路点、圆滑拐角 | `roplat_trajectory::{simplify_path, smooth_path}` | OMPL 的路径简化器 |
 | 频率、延迟、健康状态 | `roplat_diagnostics` | topic hz/delay、diagnostic_updater/aggregator |
@@ -81,10 +87,27 @@ scene.add_points("seen", &points, 0.02, camera_pose_in_world)?;      // 2 cm 体
 
 - 深度图须已校正，函数不处理畸变。
 - 仿真中，用 `sim.render_rgbd(&spec)` 得到公制深度；`spec.info()` 给出与渲染一致的内参，`spec.pose` 是光学系在世界中的位姿，可直接作为 `add_points` 的 `pose`。没有命中的像素为无穷大，函数会自动跳过。
-- 新读数要替换旧读数时，先 `remove_object("seen")` 再重新添加。
+- 新读数要替换旧读数时，先 `remove_object("seen")` 再重新添加；要让多帧读数累积、移走的物体自动消失，用下面的占据栅格。
 - 相机装在臂上时，用图像时刻的相机位姿，而不是处理时的位姿：开启 `roplat_frames` 的 feature `scene` 后，`scene::add_sensed_points(&buffer, &mut scene, "seen", &points, 0.02, WORLD, CAMERA, image_stamp)` 从记录的关节状态插值出该时刻的相机位姿；被跟踪的物体用 `scene::place_objects` 移到其坐标系在某一时刻的位姿。
 - 点没有专门的消息类型：图像与点云的流类型由数据流任务定义，这里只用 `[f64; 3]` 切片。
 - 机械臂在画面里时，先去掉落在它身上的点，否则它会成为自己的障碍物：`let points = scene.without_robot_points(&points_in_world, &q_at_image, 0.02);`。`q_at_image` 是图像时刻的关节位置；margin 取 2–3 cm，盖住深度噪声与碰撞几何和真实表面之间的差。附着在连杆上的物体一并去掉。
+
+相机持续观察时，用占据栅格代替逐帧的 `add_points`：
+
+```rust
+use roplat_scene::occupancy::OccupancyMap;
+
+let mut map = OccupancyMap::new(0.02);                        // 2 cm 体素，OctoMap 的默认概率
+// 每帧：世界系中的点，先去掉机械臂自身
+let points = scene.without_robot_points(&points_in_world, &q_at_image, 0.02);
+map.insert_scan(camera_position_in_world, &points, 3.0);     // 3 m 以外的读数只清除，不标记
+scene.set_occupancy("seen", &map)?;                           // 替换同名物体，返回体素数
+```
+
+- 读数所在的体素记一次命中，相机到读数之间光线穿过的体素记一次空闲；每个体素保存对数几率，并钳制在 0.12–0.97，所以看了很久的物体移走后几帧内被清除，一次偶然的读数也推不翻稳定的判断。
+- 从未看到的体素是未知（`is_occupied` 返回 `None`）。场景只放入占据的体素，所以规划时未知空间按空闲处理；需要保守时，先用 `is_occupied` 确认运动经过的区域都已看到（返回 `Some`）。`known()` 给出看到过的体素数。
+- `origin` 是光线起点（相机光心）在同一坐标系中的位置；点和起点都要在世界系中，不能是光学系。
+- 栅格是单一分辨率的体素散列，没有 OctoMap 的八叉树压缩与多分辨率查询。
 
 - 料箱、货架这类凹形物体用 `add_concave_object`（网格文件，需要面信息：OBJ 的 `f` 行或 STL）或 `add_trimesh`（代码中给出的三角形）加入。`add_object` 会取凸包，把内部空间填满，手伸不进去。分解使用 V-HACD：发布构建约 0.2 s，未优化时慢约 200 倍。调试构建请在工作区 `Cargo.toml` 中加入 `[profile.dev.package.parry3d-f64] opt-level = 3`。
 
@@ -129,6 +152,7 @@ robot.control_with_flow::<CartesianPoseControl, _>(|state, dt| match follower.st
 ```
 
 - 路点的坐标系与驱动的 `CartesianPoseControl` 一致，一般是法兰在基座系中的位姿；容差与测得的法兰位姿比较。
+- 圆弧用 `cartesian_arc(&from, &via, &to, duration, period)`：从 `from` 经过 `via` 到 `to` 的圆弧，时间律与 `cartesian_line` 相同（起止静止）。`via` 只约束位置（`Point3`），姿态从 `from` 球面插值到 `to`，与 Pilz CIRC 的 interim 点相同。三点共线或有两点重合时返回 `None`，整圆要分成两段。
 - 仿真中，rsbullet 的 `RsBulletDevice` 实现 `CartesianPoseControl`：每周期用 Bullet 逆解把法兰位姿（末端连杆在世界系中的位姿）转为位置电机目标，可以先在仿真里验证笛卡尔控制器。
 - 在多个线程里同时建 rsbullet 仿真世界并加载带 OBJ 网格的模型（如 Panda）会崩溃，因为 Bullet 的 OBJ 缓存是进程级且无锁的。在库层修复之前，请依次加载。
 - 超出容差时返回错误，不修改命令；要停止就 `Break`。
@@ -149,6 +173,7 @@ let path = smooth_motion(&path, 3, |a, b| scene.motion_is_free(a, b));
 
 - 一段运动在离障碍物 0.1 mm（`MOTION_TOLERANCE`）以内就算接触；`motion_contact` 报告的比例之前的位形都无碰撞。
 - `motion_is_free` 先检查终点和每 0.05 rad 的采样，通过后才做证明，所以被挡住的运动很快被拒绝。Panda 上一段 0.2 rad 的自由运动约 0.3 ms，约为 0.02 rad 采样的 1.75 倍；整个规划反而略快，因为拒绝更快。
+- 场景间隙（`set_padding`）对所有物体对相同。某一对需要不同间隙时，用 `scene.set_pair_padding("panda_hand", "shelf", 0.005)?`（名字为连杆或物体，顺序无关，名字可以尚不存在）；易碎夹具或人的工作区取大，手必须贴近货架时取小。位形检查与整段运动检查都按它计算；`clear_pair_padding` 恢复为场景间隙。
 - 取放规划用 `plan_pick_motion`（参数与 `plan_pick` 相同）：到预抓取的路径、直线接近与抬起都在各自的场景中整段检查；只做笛卡尔直线时用 `plan_cartesian_motion`。
 
 ## 桌面物体分割
@@ -169,6 +194,7 @@ for (k, object) in found.objects.iter().enumerate() {
 - 相互接触的物体会合成一个聚类；形状只有长方体与圆柱两种，物体底面视为落在桌面上。
 - 已知模型时，用 `icp` 精修位姿：以传感点为 source、完整模型为 target，从猜测位姿的逆出发，结果再取逆。方向反过来时，模型看不见的一面会被拉偏。
 - 发布构建下，一张 320×240 深度图（约 7.7 万点）的分割约 30 ms。
+- 从深度图到规划好的取放的完整流程（去掉臂上的点、分割、物体进场景、`plan_pick_motion`）见 roplat_behavior 的 `roplat_perception/tests/pick_from_depth.rs`。不去掉臂上的点时，桌面上方的前臂会被分割成一个物体。
 
 ## 在 Rerun 中查看场景
 
