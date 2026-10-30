@@ -30,6 +30,7 @@
 - roplat_behavior#66：点到面 ICP；
 - roplat_behavior#67：放置规划；
 - roplat_behavior#68：按速度与加速度限制定时的笛卡尔直线与圆弧；
+- roplat_behavior#69：球的拟合；
 - 各驱动仓的 main（含新仓 libspacemouse-rs、libdhgripper-rs）。
 
 按 [version.json](version.json) 的约定保留源码身份。
@@ -221,7 +222,7 @@ for (k, object) in found.objects.iter().enumerate() {
 
 - 流程：5 mm 体素降采样；RANSAC 找在 `up` 方向 0.2 rad 内水平的主平面作为桌面；取桌面轮廓上方 1–50 cm 的点；按 2 cm 间隙聚类；每个聚类拟合立在桌上的长方体（轮廓最小面积矩形）或直立圆柱（轮廓圆拟合），取轮廓吻合更好的一种。
 - 点必须在已知 `up` 方向的坐标系中（世界或基座），不能是相机光学系。
-- 相互接触的物体会合成一个聚类；形状只有长方体与圆柱两种，物体底面视为落在桌面上。
+- 相互接触的物体会合成一个聚类；`segment_tabletop` 的形状只有长方体与圆柱两种，物体底面视为落在桌面上。球形物体对其聚类的点调用 `fit_sphere(&object.points)`，结果的 `geometry` 为 `Geometry::Sphere`，可直接交给 `roplat_grasp::grasps`。
 - 合成一个聚类时，按表面分开：`let normals = estimate_normals(&object.points, 0.012, camera_position);`，再 `smooth_regions(&object.points, &normals, &RegionOptions { radius: 0.012, smoothness: 12f64.to_radians(), min_points: 10, ..Default::default() })`。每个区域是一个光滑表面（长方体的各个面、罐子的侧面与顶面），在棱处分开；对单个表面用 `fit_cylinder_on` 等拟合。测试中罐子紧贴盒子，只用罐子侧面拟合，轴线误差 1.3 mm。把表面重新组合成物体仍需调用方判断。降采样后的点间距为 5 mm 时，半径 3.5 cm 的罐面上相邻点法向约差 8°：用默认的 5°，罐侧分成三块，取最大一块拟合，轴线误差 6.3 mm；取 12° 时罐侧为一块。
 - 已知模型时，用 `icp` 精修位姿：以传感点为 source、完整模型为 target，从猜测位姿的逆出发，结果再取逆。方向反过来时，模型看不见的一面会被拉偏。模型由平面组成时改用 `icp_point_to_plane(&near, &model, &estimate_normals(&model, 0.008, [0.0, 0.0, 1.0]), &guess.inverse(), &options)`，参数与结果同 `icp`：测试中盒子配准从 49 次迭代减到 8 次，误差同为 0.1 mm。
 - 发布构建下，一张 320×240 深度图（约 7.7 万点）的分割约 30 ms。
