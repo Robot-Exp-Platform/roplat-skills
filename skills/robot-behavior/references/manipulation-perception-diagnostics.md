@@ -11,6 +11,8 @@
 - roplat_behavior#48：抓取成功判据；
 - roplat_behavior#49：路径简化与平滑；
 - rsbullet#21：仿真中的笛卡尔位姿控制；
+- roplat_behavior#50：规划场景与坐标树时间缓冲的连接；
+- roplat_behavior#51：笛卡尔轨迹跟随的节点形式；
 - 各驱动仓的 main。
 
 按 [version.json](version.json) 的约定保留源码身份。
@@ -65,6 +67,7 @@ scene.add_points("seen", &points, 0.02, camera_pose_in_world)?;      // 2 cm 体
 - 深度图须已校正，函数不处理畸变。
 - 仿真中，用 `sim.render_rgbd(&spec)` 得到公制深度；`spec.info()` 给出与渲染一致的内参，`spec.pose` 是光学系在世界中的位姿，可直接作为 `add_points` 的 `pose`。没有命中的像素为无穷大，函数会自动跳过。
 - 新读数要替换旧读数时，先 `remove_object("seen")` 再重新添加。
+- 相机装在臂上时，用图像时刻的相机位姿，而不是处理时的位姿：开启 `roplat_frames` 的 feature `scene` 后，`scene::add_sensed_points(&buffer, &mut scene, "seen", &points, 0.02, WORLD, CAMERA, image_stamp)` 从记录的关节状态插值出该时刻的相机位姿；被跟踪的物体用 `scene::place_objects` 移到其坐标系在某一时刻的位姿。
 - 点没有专门的消息类型：图像与点云的流类型由数据流任务定义，这里只用 `[f64; 3]` 切片。
 
 - 料箱、货架这类凹形物体用 `add_concave_object`（网格文件，需要面信息：OBJ 的 `f` 行或 STL）或 `add_trimesh`（代码中给出的三角形）加入。`add_object` 会取凸包，把内部空间填满，手伸不进去。分解使用 V-HACD：发布构建约 0.2 s，未优化时慢约 200 倍。调试构建请在工作区 `Cargo.toml` 中加入 `[profile.dev.package.parry3d-f64] opt-level = 3`。
@@ -98,6 +101,7 @@ robot.control_with_flow::<CartesianPoseControl, _>(|state, dt| match follower.st
 - 仿真中，rsbullet 的 `RsBulletDevice` 实现 `CartesianPoseControl`：每周期用 Bullet 逆解把法兰位姿（末端连杆在世界系中的位姿）转为位置电机目标，可以先在仿真里验证笛卡尔控制器。
 - 在多个线程里同时建 rsbullet 仿真世界并加载带 OBJ 网格的模型（如 Panda）会崩溃，因为 Bullet 的 OBJ 缓存是进程级且无锁的。在库层修复之前，请依次加载。
 - 超出容差时返回错误，不修改命令；要停止就 `Break`。
+- 开启 `roplat_control` 的 `roplat` feature 后，跟随器也是 roplat 节点：在 `ControlRhythm` 图中写 `sample >> follower; follower?`，拒绝即 `Break`，用 `CartesianTrackingError::find` 从 drive 的错误中取回原因，与关节轨迹跟随相同。
 
 ## 路径简化与平滑
 
