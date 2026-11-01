@@ -162,6 +162,8 @@ refresh >> { panel; };
 
 ## 4. 代码风格
 
+本节是应用代码的风格；库、契约与驱动代码的风格条文见 [library-code-style.md](library-code-style.md)。
+
 - **一个 System 一个场景**：文件开头一两句说明这个应用的结构意图；System 函数保持在一屏内。
 - **支撑与应用分离**：设备、节点实现放在独立模块；System 文件只做创建和连线。
 - **命名用领域词**：`path`、`servo`、`mirror`、`leader_control`，不用 `node1`、`worker`、`a`。变量名表达在系统中的角色，类型名表达能力。

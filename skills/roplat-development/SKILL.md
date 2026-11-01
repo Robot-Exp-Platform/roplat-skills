@@ -22,6 +22,7 @@ description: 使用 roplat 的 Node、Rhythm 和 System 宏编写、修改或排
 2. 对照 [robot_apps](assets/robot_apps/src/) 中最接近的场景：两层任务×控制（`sequence_control`）、一层运动节点（`sequence_motion`）、由 System 创建并启停设备（`sequence_owned`）、重计算放进 hard 节律（`plan_hard`）、操作员事件、检查与重试（`task_events`）、多设备旁路（`dual_arm`）。拆包与采样迁移另见 [behavior_current](assets/behavior_current/src/main.rs) 和迁移说明；图组织与资源借用语法保持一致。驱动契约见同仓 [robot-behavior](../robot-behavior/SKILL.md) 技能。
 3. 按需查语义：语法 [syntax.md](references/syntax.md)；嵌套节律与 Input/Output/Yield/Feed [rhythm-domains.md](references/rhythm-domains.md)；生命周期、停止与错误 [execution-lifecycle.md](references/execution-lifecycle.md)；旁路与外语节点 [communication-and-languages.md](references/communication-and-languages.md)。
 4. 运行与验收：[validation.md](references/validation.md)。
+5. 写或改库、契约、驱动代码时，对照 [library-code-style.md](references/library-code-style.md) 的条文与强度。
 
 ## 必须遵守
 
